@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Display - Option 3: Fullscreen Immersive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #000000;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        .blob-1 {
+            top: -15%;
+            left: -5%;
+            width: 700px;
+            height: 700px;
+            background: #4f46e5;
+            animation: blob 20s infinite alternate;
+        }
+
+        .blob-2 {
+            bottom: -15%;
+            right: -5%;
+            width: 700px;
+            height: 700px;
+            background: #db2777;
+            animation: blob 20s infinite alternate-reverse;
+        }
+
+        .blob-3 {
+            top: 50%;
+            left: 50%;
+            width: 500px;
+            height: 500px;
+            background: #005AAC;
+            opacity: 0.4;
+            animation: blob 25s infinite alternate;
+        }
+
+        @keyframes blob {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(30px, 30px) scale(1.15) rotate(10deg);
+            }
+        }
+
+        .header {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 3rem 2rem 2rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .brand-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-icon svg {
+            width: 25px;
+            height: 25px;
+            color: white;
+        }
+
+        .brand-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            font-size: 1.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 300;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .qr-section {
+            text-align: center;
+        }
+
+        .qr-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .qr-code {
+            width: 400px;
+            height: 400px;
+            background: white;
+            border-radius: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 0 0 8px rgba(99, 102, 241, 0.1),
+                0 0 0 16px rgba(168, 85, 247, 0.05),
+                0 30px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .qr-placeholder {
+            font-size: 1.2rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .scan-instruction {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scan-subtext {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .footer {
+            position: relative;
+            z-index: 10;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 450px;
+            height: 450px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 2rem;
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3.5rem;
+            }
+
+            .qr-code {
+                width: 300px;
+                height: 300px;
+            }
+
+            .pulse-ring {
+                width: 350px;
+                height: 350px;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="header">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+            </div>
+            <span class="brand-text">JioAIMusic</span>
+        </div>
+        <h1>Collective Creativity</h1>
+        <p class="tagline">One word from each leader, one song for all</p>
+    </div>
+
+    <div class="main-content">
+        <div class="qr-section">
+            <div class="qr-wrapper">
+                <div class="pulse-ring"></div>
+                <div class="qr-code">
+                    <div class="qr-placeholder">QR Code Here</div>
+                </div>
+            </div>
+            <p class="scan-instruction">Scan to Contribute</p>
+            <p class="scan-subtext">Add your word to the collective masterpiece</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="stat">
+            <div class="stat-value" id="wordCount">0</div>
+            <div class="stat-label">Words Collected</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="participantCount">0</div>
+            <div class="stat-label">Leaders Joined</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">
+                <span id="statusIcon">⏳</span>
+            </div>
+            <div class="stat-label">Status</div>
+        </div>
+    </div>
+
+    <script>
+        function updateStats() {
+            fetch('/api/words')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('wordCount').textContent = data.words.length;
+                    document.getElementById('participantCount').textContent = data.words.length;
+
+                    // Update status icon
+                    const statusIcon = document.getElementById('statusIcon');
+                    if (data.words.length === 0) {
+                        statusIcon.textContent = '⏳';
+                    } else if (data.words.length < 10) {
+                        statusIcon.textContent = '🎵';
+                    } else {
+                        statusIcon.textContent = '🎉';
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        setInterval(updateStats, 2000);
+        updateStats();
+    </script>
+</body>
+
+</html>

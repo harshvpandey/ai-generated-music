@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from schemas import GenerateRequest, GenerateResponse
 from service import generate_music, get_music_status
+from pydantic import BaseModel
 import os
 
 app = FastAPI(title="SongCreater Backend")
@@ -9,10 +11,18 @@ app = FastAPI(title="SongCreater Backend")
 # In-memory storage for job results (in production, use Redis or a database)
 job_storage = {}
 
+# In-memory storage for collected words
+collected_words = []
+
+class WordSubmission(BaseModel):
+    word: str
+
 # CORS
 origins = [
     "http://localhost:5173",  # Vite default
     "http://localhost:3000",
+    "http://localhost:8080",  # HTML pages server
+    "*"  # Allow all for testing
 ]
 
 app.add_middleware(
@@ -60,6 +70,61 @@ def get_job_status(job_id: str):
     if job_id in job_storage:
         return {"status": "success", "data": job_storage[job_id]}
     return {"status": "pending", "message": "Job not yet complete"}
+
+@app.post("/api/submit-word")
+async def submit_word(submission: WordSubmission):
+    """Submit a word from a leader"""
+    try:
+        word = submission.word.strip()
+        if not word:
+            raise HTTPException(status_code=400, detail="Word cannot be empty")
+        
+        if len(word) > 20:
+            raise HTTPException(status_code=400, detail="Word too long (max 20 characters)")
+        
+        # Add word to collection
+        collected_words.append(word)
+        
+        return {
+            "status": "success",
+            "message": "Word submitted successfully",
+            "total_words": len(collected_words)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/words")
+def get_words():
+    """Get all collected words"""
+    return {
+        "words": collected_words,
+        "count": len(collected_words)
+    }
+
+@app.get("/api/word-count")
+def get_word_count():
+    """Get count of collected words"""
+    return {"count": len(collected_words)}
+
+@app.delete("/api/words/{index}")
+def remove_word(index: int):
+    """Remove a specific word by index"""
+    global collected_words
+    try:
+        if 0 <= index < len(collected_words):
+            removed_word = collected_words.pop(index)
+            return {"status": "success", "message": f"Removed '{removed_word}'", "remaining": len(collected_words)}
+        else:
+            raise HTTPException(status_code=404, detail="Word index out of range")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/api/words")
+def clear_words():
+    """Clear all collected words (admin function)"""
+    global collected_words
+    collected_words = []
+    return {"status": "success", "message": "All words cleared"}
 
 @app.post("/api/generate", response_model=GenerateResponse)
 def generate_song(request: GenerateRequest):

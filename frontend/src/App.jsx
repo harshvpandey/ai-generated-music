@@ -9,6 +9,18 @@ function App() {
   const [error, setError] = useState(null);
   const [pollingTasks, setPollingTasks] = useState([]);
   const [colorScheme, setColorScheme] = useState('nebula');
+  const [initialPrompt, setInitialPrompt] = useState('');
+
+  // Read prompt from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const promptParam = urlParams.get('prompt');
+    if (promptParam) {
+      setInitialPrompt(decodeURIComponent(promptParam));
+      // Clean URL after reading the parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Apply color scheme
   useEffect(() => {
@@ -29,15 +41,31 @@ function App() {
             // Check if task is complete
             if (taskData.status === 'SUCCESS' || taskData.status === 'FIRST_SUCCESS') {
               const songs = taskData.response?.sunoData || [];
-              setResults(prev => {
-                const filtered = prev.filter(r => r.taskId !== taskId);
-                return [...songs, ...filtered];
-              });
-              setPollingTasks(prev => prev.filter(id => id !== taskId));
+
+              // Only add songs that are actually complete (not still processing)
+              const completeSongs = songs.filter(song =>
+                song.status === 'complete' || song.audio_url
+              );
+
+              if (completeSongs.length > 0) {
+                setResults(prev => {
+                  // Remove any existing songs with the same IDs to avoid duplicates
+                  const existingIds = new Set(prev.map(s => s.id));
+                  const newSongs = completeSongs.filter(s => !existingIds.has(s.id));
+                  return [...newSongs, ...prev];
+                });
+              }
+
+              // Stop polling when task status is SUCCESS (all songs complete)
+              if (taskData.status === 'SUCCESS') {
+                setPollingTasks(prev => prev.filter(id => id !== taskId));
+              }
             }
           }
         } catch (err) {
           console.error(`Polling error for task ${taskId}:`, err);
+          // Remove task from polling on error to prevent infinite loop
+          setPollingTasks(prev => prev.filter(id => id !== taskId));
         }
       }
     }, 5000);
@@ -119,7 +147,7 @@ function App() {
           <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundImage: 'var(--primary-gradient)' }}></div>
 
           <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60 tracking-tight">What are we creating today?</h1>
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60 tracking-tight leading-tight pb-2">What are we creating today?</h1>
             <p className="text-white/50 text-lg font-light tracking-wide">Describe your vibe, pick a genre, and let AI do the magic.</p>
           </div>
 
@@ -131,6 +159,7 @@ function App() {
                 onSuccess={handleSuccess}
                 onError={handleError}
                 isLoading={loading}
+                initialPrompt={initialPrompt}
               />
               {error && (
                 <div className="mt-6 bg-red-500/10 border border-red-500/20 text-red-200 p-4 rounded-xl text-sm">

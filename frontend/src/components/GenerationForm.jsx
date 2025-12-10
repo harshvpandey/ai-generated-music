@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { generateSong } from '../api';
 
 const GENRES = [
@@ -22,7 +22,7 @@ const GENRES = [
     'Sufi'
 ];
 
-const GenerationForm = ({ onStart, onSuccess, onError, isLoading }) => {
+const GenerationForm = ({ onStart, onSuccess, onError, isLoading, initialPrompt }) => {
     const [customMode, setCustomMode] = useState(false);
     const [instrumental, setInstrumental] = useState(false);
     const [formData, setFormData] = useState({
@@ -31,6 +31,13 @@ const GenerationForm = ({ onStart, onSuccess, onError, isLoading }) => {
         title: '',
         genre: 'Pop'
     });
+
+    // Pre-fill prompt from URL parameter
+    useEffect(() => {
+        if (initialPrompt) {
+            setFormData(prev => ({ ...prev, prompt: initialPrompt }));
+        }
+    }, [initialPrompt]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -45,7 +52,7 @@ const GenerationForm = ({ onStart, onSuccess, onError, isLoading }) => {
             // detailed prompt construction
             let finalPrompt = formData.prompt;
             if (!customMode && formData.genre) {
-                finalPrompt = `${formData.genre} song about: ${formData.prompt}`;
+                finalPrompt = `${formData.genre} song about: ${formData.prompt} `;
             }
 
             const payload = {
@@ -88,7 +95,7 @@ const GenerationForm = ({ onStart, onSuccess, onError, isLoading }) => {
                     onChange={handleChange}
                     maxLength={customMode ? 5000 : 500}
                     rows={4}
-                    className="input-field w-full rounded-xl p-4 text-lg placeholder-white/20 resize-none transition-all h-40"
+                    className="input-field w-full rounded-xl p-4 text-lg placeholder-white/15 resize-none transition-all h-40"
                     placeholder={customMode ? "Enter lyrics or description..." : "A futuristic synthwave track about neon cities..."}
                 />
             </div>
@@ -123,16 +130,16 @@ const GenerationForm = ({ onStart, onSuccess, onError, isLoading }) => {
                         <button
                             type="button"
                             onClick={() => setCustomMode(!customMode)}
-                            className={`flex-1 p-3 rounded-xl border transition-all flex items-center justify-center gap-2 text-sm font-medium ${customMode ? 'bg-[image:var(--primary-gradient)] border-transparent text-white shadow-lg' : 'glass-btn border-white/10 text-white/60'}`}
+                            className={`flex-1 px-4 py-3.5 rounded-xl border transition-all flex items-center justify-center gap-2 font-medium min-h-[56px] ${customMode ? 'bg-[image:var(--primary-gradient)] border-transparent text-white shadow-lg' : 'glass-btn border-white/10 text-white/60'}`}
                         >
-                            {customMode ? 'Custom On' : 'Custom Off'}
+                            <span className="whitespace-nowrap">{customMode ? 'Custom On' : 'Custom Off'}</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => setInstrumental(!instrumental)}
-                            className={`flex-1 p-3 rounded-xl border transition-all flex items-center justify-center gap-2 text-sm font-medium ${instrumental ? 'bg-white/10 border-white/20 text-white' : 'glass-btn border-white/10 text-white/60'}`}
+                            className={`flex-1 px-4 py-3.5 rounded-xl border transition-all flex items-center justify-center gap-2 font-medium min-h-[56px] ${instrumental ? 'bg-[image:var(--primary-gradient)] border-transparent text-white shadow-lg' : 'glass-btn border-white/10 text-white/60'}`}
                         >
-                            {instrumental ? 'Instrumental' : 'Vocal'}
+                            <span className="whitespace-nowrap">{instrumental ? 'Instrumental' : 'Vocal'}</span>
                         </button>
                     </div>
                 </div>
@@ -148,7 +155,7 @@ const GenerationForm = ({ onStart, onSuccess, onError, isLoading }) => {
                         value={formData.title}
                         onChange={handleChange}
                         maxLength={100}
-                        className="input-field w-full rounded-xl p-4 placeholder-white/20"
+                        className="input-field w-full rounded-xl p-4 placeholder-white/15"
                         placeholder="My Awesome Track"
                     />
                 </div>
