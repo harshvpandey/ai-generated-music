@@ -385,7 +385,7 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8000';
+        const API_BASE = 'https://my-suno-backend.onrender.com';
         let currentWords = [];
 
         async function refreshWords() {
@@ -556,7 +556,7 @@
             const encodedPrompt = encodeURIComponent(prompt);
 
             // Redirect to main app with prompt as URL parameter
-            window.location.href = `http://localhost:5173?prompt=${encodedPrompt}`;
+            window.location.href = `https://spiffy-sunflower-7bee1a.netlify.app?prompt=${encodedPrompt}`;
         }
 
         // Auto-refresh every 2 seconds

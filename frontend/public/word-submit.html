@@ -314,9 +314,7 @@
         // Configure this URL based on your setup:
         // For localhost testing: 'http://localhost:8000'
         // For hosted version with ngrok: 'https://your-ngrok-url.ngrok.io'
-        const API_BASE = window.location.hostname === 'localhost'
-            ? 'http://localhost:8000'
-            : 'https://YOUR_NGROK_URL.ngrok.io'; // Replace with your actual ngrok URL
+        const API_BASE = 'https://my-suno-backend.onrender.com';
 
         const wordInput = document.getElementById('word');
         const charCount = document.getElementById('charCount');
