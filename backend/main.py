@@ -22,6 +22,7 @@ origins = [
     "http://localhost:5173",  # Vite default
     "http://localhost:3000",
     "http://localhost:8080",  # HTML pages server
+    "https://spiffy-sunflower-7bee1a.netlify.app", # Production Frontend
     "*"  # Allow all for testing
 ]
 
