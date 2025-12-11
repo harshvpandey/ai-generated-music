@@ -72,8 +72,21 @@ function App() {
               }
             }
           }
+          else if (response.status === 'error' || (response.data && response.data.status === 'error')) {
+            // Handle explicit backend error response
+            setResults(prev => prev.map(res =>
+              res.id === taskId ? { ...res, status: 'failed', title: 'Generation Failed' } : res
+            ));
+            setPollingTasks(prev => prev.filter(id => id !== taskId));
+          }
         } catch (err) {
           console.error(`Polling error for task ${taskId}:`, err);
+
+          // Update the UI to show error state
+          setResults(prev => prev.map(res =>
+            res.id === taskId ? { ...res, status: 'failed', title: 'Generation Error' } : res
+          ));
+
           // Remove task from polling on error to prevent infinite loop
           setPollingTasks(prev => prev.filter(id => id !== taskId));
         }
