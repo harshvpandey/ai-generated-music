@@ -271,7 +271,7 @@
     <script>
         // Real-time updates
         function updateDisplay() {
-            fetch('/api/words')
+            fetch('https://my-suno-backend.onrender.com/api/words')
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('wordCount').textContent = data.words.length;
