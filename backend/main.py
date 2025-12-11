@@ -6,7 +6,11 @@ from service import generate_music, get_music_status
 from pydantic import BaseModel
 import os
 
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI(title="SongCreater Backend")
+
+
 
 # In-memory storage for job results (in production, use Redis or a database)
 job_storage = {}
@@ -143,6 +147,12 @@ def generate_song(request: GenerateRequest):
     except Exception as e:
         print(f"Error generating music: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+# Mount frontend directory for static file serving at the END
+# so it doesn't intercept API routes
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
