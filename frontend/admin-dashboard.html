@@ -555,8 +555,8 @@
             // Encode the prompt for URL
             const encodedPrompt = encodeURIComponent(prompt);
 
-            // Redirect to main app with prompt as URL parameter
-            window.location.href = `http://localhost:5173?prompt=${encodedPrompt}`;
+            // Redirect to local prompt display page
+            window.location.href = `prompt-display.html?prompt=${encodedPrompt}`;
         }
 
         // Auto-refresh every 2 seconds

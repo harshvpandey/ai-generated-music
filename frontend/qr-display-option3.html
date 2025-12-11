@@ -301,14 +301,75 @@
         <div class="qr-section">
             <div class="qr-wrapper">
                 <div class="pulse-ring"></div>
-                <div class="qr-code">
-                    <div class="qr-placeholder">QR Code Here</div>
-                </div>
+                <div class="qr-code" id="qrcode" style="padding: 20px;"></div>
             </div>
             <p class="scan-instruction">Scan to Contribute</p>
             <p class="scan-subtext">Add your word to the collective masterpiece</p>
         </div>
     </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Config UI -->
+    <div id="configUI" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
+        <button onclick="toggleConfig()"
+            style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(5px);">
+            ⚙️ Setup Link
+        </button>
+    </div>
+    <div id="configModal"
+        style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 25px; border-radius: 15px; border: 1px solid #333; z-index: 101; box-shadow: 0 10px 40px rgba(0,0,0,0.8); width: 400px;">
+        <h3 style="margin-bottom: 15px; color: white;">Update QR Link</h3>
+        <p style="color: #888; margin-bottom: 10px; font-size: 0.9rem;">Paste your Cloudflare/Public link here:</p>
+        <input type="text" id="urlInput" placeholder="https://..."
+            style="width: 100%; padding: 10px; background: #333; border: 1px solid #444; color: white; border-radius: 8px; margin-bottom: 15px;">
+        <button onclick="updateQR()"
+            style="width: 100%; padding: 10px; background: #6366f1; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold;">Update
+            QR Code</button>
+        <button onclick="toggleConfig()"
+            style="width: 100%; padding: 10px; background: transparent; border: none; color: #888; margin-top: 10px; cursor: pointer;">Cancel</button>
+    </div>
+
+    <script>
+        let qrCodeObj = null;
+        let currentUrl = "https://outsourcing-clicking-notified-pub.trycloudflare.com";
+
+        // Check Query Param override (?url=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('url')) {
+            currentUrl = urlParams.get('url');
+        }
+
+        function generateQR(url) {
+            const container = document.getElementById("qrcode");
+            container.innerHTML = '';
+            qrCodeObj = new QRCode(container, {
+                text: url,
+                width: 360,
+                height: 360,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            document.getElementById('urlInput').value = url;
+        }
+
+        generateQR(currentUrl);
+
+        function toggleConfig() {
+            const modal = document.getElementById('configModal');
+            modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateQR() {
+            const newUrl = document.getElementById('urlInput').value.trim();
+            if (newUrl) {
+                generateQR(newUrl);
+                toggleConfig();
+            }
+        }
+    </script>
 
     <div class="footer">
         <div class="stat">
