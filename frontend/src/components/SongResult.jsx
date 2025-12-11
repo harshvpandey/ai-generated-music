@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 
 const SongResult = ({ song }) => {
     const audioRef = useRef(null);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
 
     // Graceful fallback if song is just an ID or incomplete
@@ -26,6 +28,31 @@ const SongResult = ({ song }) => {
     const tags = song.tags || song.style;
     const status = song.status;
 
+    const formatTime = (time) => {
+        if (isNaN(time)) return '0:00';
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            setCurrentTime(audioRef.current.currentTime);
+        }
+    };
+
+    const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+            // Check if duration is valid number (infinity sometimes happens with streams)
+            const d = audioRef.current.duration;
+            if (!isNaN(d) && d !== Infinity) {
+                setDuration(d);
+            } else if (song.metadata?.duration) {
+                setDuration(song.metadata.duration);
+            }
+        }
+    };
+
     const togglePlay = (e) => {
         e.stopPropagation();
         if (!audioRef.current) return;
@@ -39,7 +66,10 @@ const SongResult = ({ song }) => {
                     el.pause();
                 }
             });
-            audioRef.current.play();
+            audioRef.current.play().catch(err => {
+                console.error("Playback failed:", err);
+                setIsPlaying(false);
+            });
         }
         setIsPlaying(!isPlaying);
     };
@@ -71,7 +101,9 @@ const SongResult = ({ song }) => {
             <div className="flex-grow min-w-0">
                 <h3 className="font-bold text-sm text-white truncate leading-tight">{title}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-white/40 text-xs truncate">{song.metadata?.type || 'Generated Track'} • {song.metadata?.duration ? '2:30' : '0:00'}</span>
+                    <span className="text-white/40 text-xs truncate font-mono">
+                        {audioUrl ? `${formatTime(currentTime)} / ${formatTime(duration || song.metadata?.duration || 0)}` : (song.metadata?.type || 'Generated Track')}
+                    </span>
 
                     {status && status !== 'complete' && (
                         <span className={`text-[9px] font-bold px-1.5 py-px rounded uppercase tracking-wide ${status === 'streaming' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
@@ -92,6 +124,8 @@ const SongResult = ({ song }) => {
                             onPlay={() => setIsPlaying(true)}
                             onPause={() => setIsPlaying(false)}
                             onEnded={() => setIsPlaying(false)}
+                            onTimeUpdate={handleTimeUpdate}
+                            onLoadedMetadata={handleLoadedMetadata}
                             className="hidden"
                         />
                         <button
