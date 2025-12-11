@@ -40,19 +40,29 @@ function App() {
             const taskData = response.data.data;
             // Check if task is complete
             if (taskData.status === 'SUCCESS' || taskData.status === 'FIRST_SUCCESS') {
-              const songs = taskData.response?.sunoData || [];
+              const songs = taskData.sunoData || taskData.response?.sunoData || [];
 
               // Only add songs that are actually complete (not still processing)
               const completeSongs = songs.filter(song =>
-                song.status === 'complete' || song.audio_url
+                song.status === 'complete' || song.audio_url || song.audioUrl
               );
 
               if (completeSongs.length > 0) {
                 setResults(prev => {
-                  // Remove any existing songs with the same IDs to avoid duplicates
-                  const existingIds = new Set(prev.map(s => s.id));
-                  const newSongs = completeSongs.filter(s => !existingIds.has(s.id));
-                  return [...newSongs, ...prev];
+                  const newResults = [...prev];
+
+                  completeSongs.forEach(newSong => {
+                    const index = newResults.findIndex(s => s.id === newSong.id);
+                    if (index !== -1) {
+                      // Update existing song
+                      newResults[index] = { ...newResults[index], ...newSong };
+                    } else {
+                      // Add new song
+                      newResults.unshift(newSong);
+                    }
+                  });
+
+                  return newResults;
                 });
               }
 
