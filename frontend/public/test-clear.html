@@ -44,7 +44,7 @@
     <script>
         function clearWords() {
             console.log('Clearing words...');
-            fetch('http://localhost:8000/api/words', {
+            fetch('https://my-suno-backend.onrender.com/api/words', {
                 method: 'DELETE'
             })
                 .then(response => response.json())
@@ -68,7 +68,7 @@
 
         function checkWords() {
             console.log('Checking words...');
-            fetch('http://localhost:8000/api/words')
+            fetch('https://my-suno-backend.onrender.com/api/words')
                 .then(response => response.json())
                 .then(data => {
                     console.log('Words:', data);

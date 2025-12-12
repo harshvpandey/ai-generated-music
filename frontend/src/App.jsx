@@ -49,7 +49,9 @@ function App() {
 
               if (completeSongs.length > 0) {
                 setResults(prev => {
-                  const newResults = [...prev];
+                  // Remove the placeholder for this task if it exists
+                  const filteredResults = prev.filter(item => item.id !== taskId);
+                  const newResults = [...filteredResults];
 
                   completeSongs.forEach(newSong => {
                     const index = newResults.findIndex(s => s.id === newSong.id);
@@ -72,8 +74,21 @@ function App() {
               }
             }
           }
+          else if (response.status === 'error' || (response.data && response.data.status === 'error')) {
+            // Handle explicit backend error response
+            setResults(prev => prev.map(res =>
+              res.id === taskId ? { ...res, status: 'failed', title: 'Generation Failed' } : res
+            ));
+            setPollingTasks(prev => prev.filter(id => id !== taskId));
+          }
         } catch (err) {
           console.error(`Polling error for task ${taskId}:`, err);
+
+          // Update the UI to show error state
+          setResults(prev => prev.map(res =>
+            res.id === taskId ? { ...res, status: 'failed', title: 'Generation Error' } : res
+          ));
+
           // Remove task from polling on error to prevent infinite loop
           setPollingTasks(prev => prev.filter(id => id !== taskId));
         }

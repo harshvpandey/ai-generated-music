@@ -104,14 +104,21 @@
         }
 
         .qr-container {
-            background: rgba(20, 20, 20, 0.7);
-            backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 2rem;
-            padding: 3rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2.5rem;
+            padding: 4rem;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6),
+                inset 0 0 20px rgba(255, 255, 255, 0.05);
             position: relative;
             overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .qr-container:hover {
+            transform: translateY(-5px);
         }
 
         .qr-container::before {
@@ -125,15 +132,20 @@
         }
 
         .qr-code {
-            width: 350px;
-            height: 350px;
+            width: 320px;
+            height: 320px;
             background: white;
-            border-radius: 1.5rem;
-            margin: 0 auto 2rem;
+            border-radius: 2rem;
+            margin: 0 auto 2.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .qr-code:hover {
+            transform: scale(1.02);
         }
 
         .qr-placeholder {
@@ -191,8 +203,8 @@
 
         <div class="qr-container">
             <div class="qr-code">
-                <!-- QR Code will be generated here -->
-                <div class="qr-placeholder">QR Code Here</div>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=000000"
+                    alt="Scan to Submit" style="width: 100%; height: 100%; object-fit: contain; padding: 20px;">
             </div>
 
             <p class="instruction pulse">Scan to add your word to the song</p>
@@ -207,7 +219,7 @@
         // Real-time word count update (connect to your backend)
         function updateWordCount() {
             // Fetch from your backend API
-            fetch('/api/word-count')
+            fetch('https://my-suno-backend.onrender.com/api/word-count')
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('wordCount').textContent = data.count;

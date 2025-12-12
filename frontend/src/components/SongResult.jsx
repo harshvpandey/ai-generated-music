@@ -106,7 +106,9 @@ const SongResult = ({ song }) => {
                     </span>
 
                     {status && status !== 'complete' && (
-                        <span className={`text-[9px] font-bold px-1.5 py-px rounded uppercase tracking-wide ${status === 'streaming' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                        <span className={`text-[9px] font-bold px-1.5 py-px rounded uppercase tracking-wide ${status === 'streaming' ? 'bg-green-500/20 text-green-400' :
+                            (status === 'error' || status === 'failed') ? 'bg-red-500/20 text-red-400' :
+                                'bg-yellow-500/20 text-yellow-400'
                             }`}>
                             {status === 'streaming' ? 'LIVE' : status}
                         </span>
@@ -145,7 +147,13 @@ const SongResult = ({ song }) => {
                     </>
                 ) : (
                     <div className="w-8 h-8 flex items-center justify-center">
-                        <span className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin"></span>
+                        {(status === 'error' || status === 'failed') ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        ) : (
+                            <span className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin"></span>
+                        )}
                     </div>
                 )}
             </div>
