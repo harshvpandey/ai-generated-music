@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Your Word</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -19,39 +19,41 @@
             background: #000000;
             color: white;
             min-height: 100vh;
-            /* Mobile viewport height fix */
-            min-height: -webkit-fill-available;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            width: 100%;
             overflow-x: hidden;
+            position: relative;
+            padding: 1rem;
         }
 
         /* Animated Background */
         .blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(100px);
+            filter: blur(80px);
             opacity: 0.5;
             z-index: 0;
         }
 
         .blob-1 {
-            top: -20%;
-            left: -10%;
-            width: 600px;
-            height: 600px;
+            top: -10vh;
+            left: -10vw;
+            width: 80vw;
+            height: 80vw;
+            max-width: 600px;
+            max-height: 600px;
             background: #4f46e5;
             animation: blob 25s infinite alternate;
         }
 
         .blob-2 {
-            bottom: -20%;
-            right: -10%;
-            width: 600px;
-            height: 600px;
+            bottom: -10vh;
+            right: -10vw;
+            width: 80vw;
+            height: 80vw;
+            max-width: 600px;
+            max-height: 600px;
             background: #db2777;
             animation: blob 25s infinite alternate-reverse;
         }
@@ -62,27 +64,35 @@
             }
 
             100% {
-                transform: translate(50px, 50px) scale(1.1);
+                transform: translate(30px, 30px) scale(1.1);
             }
         }
 
         .container {
             position: relative;
             z-index: 10;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
-            padding: 2rem;
         }
 
         .card {
-            background: rgba(20, 20, 20, 0.8);
+            background: rgba(20, 20, 20, 0.85);
             backdrop-filter: blur(40px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 2rem;
-            padding: 3rem;
+            padding: 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .card {
+                padding: 3rem;
+            }
         }
 
         .card::before {
@@ -96,27 +106,27 @@
         }
 
         .logo {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .logo svg {
-            width: 30px;
-            height: 30px;
+            width: 25px;
+            height: 25px;
             color: white;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 5vw, 2.5rem);
             font-weight: 800;
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -125,18 +135,22 @@
 
         .subtitle {
             text-align: center;
-            font-size: 1.1rem;
+            font-size: clamp(1rem, 2vw, 1.1rem);
             color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             line-height: 1.6;
+            max-width: 90%;
         }
 
         .form-group {
+            width: 100%;
             margin-bottom: 2rem;
         }
 
         label {
             display: block;
+            width: 100%;
+            text-align: left;
             font-size: 0.9rem;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.7);
@@ -157,8 +171,6 @@
             color: white;
             text-align: center;
             transition: all 0.3s ease;
-            -webkit-appearance: none;
-            appearance: none;
         }
 
         input[type="text"]:focus {
@@ -179,7 +191,53 @@
             margin-top: 0.5rem;
         }
 
-        button {
+        .pills-label {
+            display: block;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 1rem;
+        }
+
+        .pills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .word-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.6rem 1rem;
+            border-radius: 2rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .word-pill:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .word-pill.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
+            color: white;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+
+        button.submit-btn {
             width: 100%;
             padding: 1.25rem;
             font-size: 1.2rem;
@@ -192,20 +250,18 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
-            -webkit-appearance: none;
-            appearance: none;
         }
 
-        button:hover {
+        button.submit-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
         }
 
-        button:active {
+        button.submit-btn:active:not(:disabled) {
             transform: translateY(0);
         }
 
-        button:disabled {
+        button.submit-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
@@ -215,6 +271,7 @@
             display: none;
             text-align: center;
             padding: 2rem;
+            width: 100%;
         }
 
         .success-message.show {
@@ -264,49 +321,14 @@
         }
 
         .hide {
-            display: none;
+            display: none !important;
         }
 
-        @media (max-width: 768px) {
-            body {
-                height: auto;
-                min-height: 100vh;
-                overflow-y: auto;
-                padding: 1rem 0;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-
-            .card {
-                padding: 1.5rem;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .subtitle {
-                font-size: 1rem;
-                margin-bottom: 2rem;
-            }
-
-            input[type="text"] {
-                padding: 1rem;
-                font-size: 1.2rem;
-            }
-
-            button {
-                padding: 1rem;
-                font-size: 1rem;
-            }
-
-            .blob {
-                width: 300px;
-                height: 300px;
-                filter: blur(80px);
-            }
+        #formSection {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
     </style>
 </head>
@@ -331,20 +353,23 @@
                     Contribute one word that inspires you. Together, we'll create something magical.
                 </p>
 
-                <form id="wordForm">
-                    <div class="form-group">
-                        <label for="word">Your Word</label>
-                        <input type="text" id="word" name="word" placeholder="Innovation" maxlength="20" required
-                            autocomplete="off">
-                        <div class="char-count">
-                            <span id="charCount">0</span>/20
-                        </div>
+                <div class="form-group">
+                    <label for="word">Your Word</label>
+                    <input type="text" id="word" name="word" placeholder="Type or select below..." maxlength="20"
+                        autocomplete="off">
+                    <div class="char-count">
+                        <span id="charCount">0</span>/20
                     </div>
+                </div>
 
-                    <button type="submit" id="submitBtn">
-                        Submit Word
-                    </button>
-                </form>
+                <span class="pills-label">Or choose a power word:</span>
+                <div class="pills-container" id="pillsContainer">
+                    <!-- Pills will be injected here via JavaScript -->
+                </div>
+
+                <button type="button" id="submitBtn" class="submit-btn">
+                    Submit Word
+                </button>
             </div>
 
             <div id="successSection" class="success-message">
@@ -365,24 +390,76 @@
         // For hosted version with ngrok: 'https://your-ngrok-url.ngrok.io'
         const API_BASE = 'https://my-suno-backend.onrender.com';
 
+        const words = [
+            "Strategic", "Fearless", "Relentless", "Results-driven",
+            "Game-changer", "Trailblazer", "Visionary", "Bold",
+            "Honest", "Inspiring", "Focused", "Strong",
+            "Trusted", "Steady", "Sharp", "Fast",
+            "Wise", "Driven", "Grounded", "Confident"
+        ];
+
+        const pillsContainer = document.getElementById('pillsContainer');
+        const submitBtn = document.getElementById('submitBtn');
         const wordInput = document.getElementById('word');
         const charCount = document.getElementById('charCount');
-        const form = document.getElementById('wordForm');
-        const submitBtn = document.getElementById('submitBtn');
         const formSection = document.getElementById('formSection');
         const successSection = document.getElementById('successSection');
 
-        // Character counter
-        wordInput.addEventListener('input', (e) => {
-            charCount.textContent = e.target.value.length;
+        // Initialize Pills
+        function initPills() {
+            words.forEach(word => {
+                const pill = document.createElement('div');
+                pill.className = 'word-pill';
+                pill.textContent = word;
+                pill.addEventListener('click', () => selectWord(word, pill));
+                pillsContainer.appendChild(pill);
+            });
+        }
+
+        // Handle Pill Selection
+        function selectWord(word, pillElement) {
+            // Remove active class from all pills
+            document.querySelectorAll('.word-pill').forEach(p => p.classList.remove('active'));
+
+            // Add active class to clicked pill
+            pillElement.classList.add('active');
+
+            // Set input value
+            wordInput.value = word;
+            updateCharCount();
+        }
+
+        // Handle Input Changes
+        wordInput.addEventListener('input', () => {
+            updateCharCount();
+
+            // If user types something that doesn't match the selected pill, remove active state
+            const currentVal = wordInput.value;
+            const activePill = document.querySelector('.word-pill.active');
+
+            if (activePill && activePill.textContent !== currentVal) {
+                activePill.classList.remove('active');
+            }
+
+            // Optional: highlight pill if user types matching word
+            document.querySelectorAll('.word-pill').forEach(pill => {
+                if (pill.textContent.toLowerCase() === currentVal.toLowerCase()) {
+                    pill.classList.add('active');
+                }
+            });
         });
 
-        // Form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function updateCharCount() {
+            charCount.textContent = wordInput.value.length;
+        }
 
+        // Handle Submission
+        submitBtn.addEventListener('click', async () => {
             const word = wordInput.value.trim();
-            if (!word) return;
+            if (!word) {
+                wordInput.focus();
+                return;
+            }
 
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
@@ -397,19 +474,7 @@
                 });
 
                 if (response.ok) {
-                    // Show success message
-                    formSection.classList.add('hide');
-                    successSection.classList.add('show');
-
-                    // Reset form after 3 seconds
-                    setTimeout(() => {
-                        formSection.classList.remove('hide');
-                        successSection.classList.remove('show');
-                        wordInput.value = '';
-                        charCount.textContent = '0';
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Submit Word';
-                    }, 3000);
+                    showSuccess();
                 } else {
                     throw new Error('Submission failed');
                 }
@@ -420,6 +485,29 @@
                 submitBtn.textContent = 'Submit Word';
             }
         });
+
+        function showSuccess() {
+            formSection.classList.add('hide');
+            successSection.classList.add('show');
+
+            // Reset after delay
+            setTimeout(() => {
+                resetForm();
+            }, 3000);
+        }
+
+        function resetForm() {
+            formSection.classList.remove('hide');
+            successSection.classList.remove('show');
+            wordInput.value = '';
+            document.querySelectorAll('.word-pill').forEach(p => p.classList.remove('active'));
+            updateCharCount();
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Word';
+        }
+
+        // Initialize on load
+        initPills();
     </script>
 </body>
 
