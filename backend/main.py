@@ -80,8 +80,8 @@ async def submit_word(submission: WordSubmission):
         if not word:
             raise HTTPException(status_code=400, detail="Word cannot be empty")
         
-        if len(word) > 20:
-            raise HTTPException(status_code=400, detail="Word too long (max 20 characters)")
+        if len(word) > 500:
+            raise HTTPException(status_code=400, detail="Word too long (max 500 characters)")
         
         # Add word to collection
         collected_words.append(word)
