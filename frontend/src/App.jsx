@@ -49,7 +49,9 @@ function App() {
 
               if (completeSongs.length > 0) {
                 setResults(prev => {
-                  const newResults = [...prev];
+                  // Remove the placeholder for this task if it exists
+                  const filteredResults = prev.filter(item => item.id !== taskId);
+                  const newResults = [...filteredResults];
 
                   completeSongs.forEach(newSong => {
                     const index = newResults.findIndex(s => s.id === newSong.id);
