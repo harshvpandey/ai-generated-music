@@ -18,8 +18,7 @@
             font-family: 'Outfit', sans-serif;
             background: #000000;
             color: white;
-            height: 100vh;
-            width: 100vw;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -30,25 +29,30 @@
         .blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(120px);
+            filter: blur(80px);
+            /* Reduced blur slightly for performance on mobile */
             opacity: 0.6;
             z-index: 0;
         }
 
         .blob-1 {
-            top: -15%;
-            left: -5%;
-            width: 700px;
-            height: 700px;
+            top: -10vh;
+            left: -10vw;
+            width: 50vw;
+            height: 50vw;
+            max-width: 700px;
+            max-height: 700px;
             background: #4f46e5;
             animation: blob 20s infinite alternate;
         }
 
         .blob-2 {
-            bottom: -15%;
-            right: -5%;
-            width: 700px;
-            height: 700px;
+            bottom: -10vh;
+            right: -10vw;
+            width: 50vw;
+            height: 50vw;
+            max-width: 700px;
+            max-height: 700px;
             background: #db2777;
             animation: blob 20s infinite alternate-reverse;
         }
@@ -56,11 +60,14 @@
         .blob-3 {
             top: 50%;
             left: 50%;
-            width: 500px;
-            height: 500px;
+            width: 40vw;
+            height: 40vw;
+            max-width: 500px;
+            max-height: 500px;
             background: #005AAC;
             opacity: 0.4;
             animation: blob 25s infinite alternate;
+            transform: translate(-50%, -50%);
         }
 
         @keyframes blob {
@@ -77,8 +84,7 @@
             position: relative;
             z-index: 10;
             text-align: center;
-            padding: 4vh 2vw 2vh;
-            flex: 0 0 auto;
+            padding: 2rem 1rem 1rem;
         }
 
         .brand {
@@ -86,12 +92,12 @@
             align-items: center;
             justify-content: center;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .brand-icon {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             border-radius: 50%;
             display: flex;
@@ -100,32 +106,35 @@
         }
 
         .brand-icon svg {
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             color: white;
         }
 
         .brand-text {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
         }
 
         h1 {
-            font-size: 4.5rem;
+            font-size: clamp(2.5rem, 6vw, 6rem);
+            /* Fluid typography */
             font-weight: 900;
             background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 1rem;
-            line-height: 1;
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
             letter-spacing: -0.02em;
+            padding: 0 1rem;
         }
 
         .tagline {
-            font-size: 1.8rem;
+            font-size: clamp(1rem, 2vw, 1.8rem);
             color: rgba(255, 255, 255, 0.5);
             font-weight: 300;
+            padding: 0 1rem;
         }
 
         .main-content {
@@ -135,24 +144,34 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 0;
             padding: 1rem;
+            width: 100%;
         }
 
         .qr-section {
             text-align: center;
-            margin-top: 2vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .qr-wrapper {
             position: relative;
-            display: inline-block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             margin-bottom: 2rem;
+            width: 100%;
+            max-width: 400px;
+            /* Constrain max width */
         }
 
         .qr-code {
-            width: 300px;
-            height: 300px;
+            width: min(80vw, 400px);
+            /* Responsive width */
+            height: min(80vw, 400px);
+            /* Keep aspect ratio square-ish */
             background: white;
             border-radius: 2rem;
             display: flex;
@@ -163,7 +182,18 @@
                 0 0 0 16px rgba(168, 85, 247, 0.05),
                 0 30px 60px rgba(0, 0, 0, 0.5);
             position: relative;
+            z-index: 2;
             animation: float 6s ease-in-out infinite;
+        }
+
+        /* Inner QR image styling to ensure it fits nicely */
+        .qr-code img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 1.5rem;
+            /* Responsive padding */
+            border-radius: 2rem;
         }
 
         @keyframes float {
@@ -174,65 +204,9 @@
             }
 
             50% {
-                transform: translateY(-20px);
+                transform: translateY(-15px);
+                /* Slightly reduced movement for mobile */
             }
-        }
-
-        .qr-placeholder {
-            font-size: 1.2rem;
-            color: #666;
-            font-weight: 600;
-        }
-
-        .scan-instruction {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .scan-subtext {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .footer {
-            position: relative;
-            z-index: 10;
-            padding: 1.5rem;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            flex: 0 0 auto;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            font-weight: 600;
         }
 
         .pulse-ring {
@@ -240,11 +214,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 340px;
-            height: 340px;
+            width: min(90vw, 450px);
+            height: min(90vw, 450px);
             border: 3px solid rgba(99, 102, 241, 0.3);
-            border-radius: 2rem;
+            border-radius: 2.2rem;
             animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            z-index: 1;
         }
 
         @keyframes pulse-ring {
@@ -259,41 +234,84 @@
             }
         }
 
-        @media (max-width: 768px) {
-            body {
-                height: auto;
-                min-height: 100vh;
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding-bottom: 2rem;
+        .scan-instruction {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scan-subtext {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 1rem;
+        }
+
+        .footer {
+            position: relative;
+            z-index: 10;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .stat {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-value {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: clamp(0.7rem, 1.5vw, 1rem);
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .header {
+                padding-top: 2rem;
             }
 
-            h1 {
-                font-size: 3rem;
-            }
-
-            .main-content {
-                padding: 1rem;
-            }
-
-            .qr-code {
-                width: 280px;
-                height: 280px;
-            }
-
-            .pulse-ring {
-                width: 320px;
-                height: 320px;
+            .qr-wrapper {
+                margin-bottom: 1.5rem;
             }
 
             .footer {
-                flex-direction: column;
+                justify-content: center;
                 gap: 2rem;
-                padding: 2rem 1rem;
             }
 
-            .stat-value {
-                font-size: 2.5rem;
+            /* Adjust blobs for mobile so they don't cover text */
+            .blob-1 {
+                top: -5vh;
+                left: -20vw;
+            }
+
+            .blob-2 {
+                bottom: -5vh;
+                right: -20vw;
             }
         }
     </style>
