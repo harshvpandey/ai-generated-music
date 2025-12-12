@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Add Your Word</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -19,12 +19,17 @@
             background: #000000;
             color: white;
             min-height: 100vh;
+            /* Use dvh for better mobile browser support */
+            min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow-x: hidden;
             position: relative;
             padding: 1rem;
+            /* Fix horizontal scroll issue */
+            width: 100%;
+            max-width: 100vw;
         }
 
         /* Animated Background */
@@ -162,7 +167,8 @@
         input[type="text"] {
             width: 100%;
             padding: 1.25rem 1.5rem;
-            font-size: 1.5rem;
+            /* Fix for iOS zoom: font-size must be at least 16px */
+            font-size: 16px;
             font-family: 'Outfit', sans-serif;
             font-weight: 600;
             background: rgba(0, 0, 0, 0.3);
@@ -171,6 +177,13 @@
             color: white;
             text-align: left;
             transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        @media (min-width: 768px) {
+            input[type="text"] {
+                font-size: 1.5rem;
+            }
         }
 
         input[type="text"]:focus {
@@ -358,7 +371,7 @@
                 </div>
 
                 <button type="button" id="submitBtn" class="submit-btn">
-                    Submit Word(s)
+                    Submit
                 </button>
             </div>
 
@@ -378,7 +391,7 @@
         // Configure this URL based on your setup:
         // For localhost testing: 'http://localhost:8000'
         // For hosted version with ngrok: 'https://your-ngrok-url.ngrok.io'
-        const API_BASE = 'http://localhost:8000';
+        const API_BASE = 'https://my-suno-backend.onrender.com';
 
         const words = [
             "Strategic", "Fearless", "Relentless", "Results-driven",
@@ -485,7 +498,7 @@
                 console.error('Error:', error);
                 alert('Failed to submit word. Please try again.');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Word(s)';
+                submitBtn.textContent = 'Submit';
             }
         });
 
@@ -505,7 +518,7 @@
             wordInput.value = '';
             document.querySelectorAll('.word-pill').forEach(p => p.classList.remove('active'));
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit Word(s)';
+            submitBtn.textContent = 'Submit';
         }
 
         // Initialize on load

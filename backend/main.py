@@ -76,19 +76,24 @@ def get_job_status(job_id: str):
 async def submit_word(submission: WordSubmission):
     """Submit a word from a leader"""
     try:
-        word = submission.word.strip()
-        if not word:
+        raw_word = submission.word.strip()
+        if not raw_word:
             raise HTTPException(status_code=400, detail="Word cannot be empty")
         
-        if len(word) > 500:
-            raise HTTPException(status_code=400, detail="Word too long (max 500 characters)")
+        if len(raw_word) > 500:
+            raise HTTPException(status_code=400, detail="Submission too long (max 500 characters)")
         
-        # Add word to collection
-        collected_words.append(word)
+        # Split by comma and add each word separately
+        new_words = [w.strip() for w in raw_word.split(',') if w.strip()]
+        
+        if not new_words:
+            raise HTTPException(status_code=400, detail="No valid words found in submission")
+
+        collected_words.extend(new_words)
         
         return {
             "status": "success",
-            "message": "Word submitted successfully",
+            "message": f"{len(new_words)} words submitted successfully",
             "total_words": len(collected_words)
         }
     except Exception as e:
