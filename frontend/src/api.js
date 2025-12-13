@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://my-suno-backend.onrender.com/api";
+const API_BASE_URL = "http://localhost:8000/api";
 
 export const generateSong = async (formData) => {
     try {

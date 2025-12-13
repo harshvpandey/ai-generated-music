@@ -291,6 +291,22 @@
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
+    <!-- Fixed Settings UI -->
+    <button onclick="toggleEdit()" title="Configure QR URL"
+        style="position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: white; cursor: pointer; border-radius: 50%; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path
+                d="M19.4 15C20.6 15 21.6 15.6 22 16.6C22.4 17.6 22.1 18.8 21.2 19.5L20.2 20.2C19.4 20.8 19 21.8 19.1 22.8L19.2 24H4.8L4.9 22.8C5 21.8 4.6 20.8 3.8 20.2L2.8 19.5C1.9 18.8 1.6 17.6 2 16.6C2.4 15.6 3.4 15 4.6 15H19.4Z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" />
+            <path
+                d="M12.22 2H11.78C9.59997 2.01 7.74997 3.52 7.24997 5.64C7.09997 6.28 6.55997 6.78 5.89997 6.88C3.71997 7.21 2.15997 9.21 2.42997 11.4C2.50997 12.1 2.50997 12.81 2.42997 13.51C2.14997 15.7 3.71997 17.7 5.89997 18.03C6.55997 18.13 7.09997 18.63 7.24997 19.27C7.74997 21.39 9.59997 22.9 11.78 22.91H12.22C14.4 22.9 16.25 21.39 16.75 19.27C16.9 18.63 17.44 18.13 18.1 18.03C20.28 17.7 21.84 15.7 21.57 13.51C21.49 12.81 21.49 12.1 21.57 11.4C21.85 9.21 20.28 7.21 18.1 6.88C17.44 6.78 16.9 6.28 16.75 5.64C16.25 3.52 14.4 2.01 12.22 2Z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </button>
+
     <div class="container">
         <div class="left-section">
             <h1>Create Together</h1>
@@ -319,27 +335,93 @@
         <div class="right-section">
             <p class="scan-text">Scan to contribute your word</p>
             <div class="qr-card">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=000000"
-                    alt="Scan to Submit" style="width: 100%; height: 100%; object-fit: contain; padding: 20px;">
+                <div style="position: relative;">
+                    <img id="qrImage" src="" alt="Scan to Submit"
+                        style="width: 100%; height: 100%; object-fit: contain; padding: 20px;">
+                    <!-- Button removed -->
+                </div>
+            </div>
+            <div id="editContainer" style="display: none; margin-top: 10px;">
+                <input type="text" id="qrUrlInput" placeholder="Enter URL"
+                    style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #444; background: #222; color: white;">
+                <button onclick="saveQrUrl()"
+                    style="margin-top: 5px; width: 100%; padding: 8px; background: #6366f1; color: white; border: none; border-radius: 5px; cursor: pointer;">Update
+                    QR</button>
             </div>
         </div>
     </div>
     </div>
+    </div>
 
     <script>
+        // QR Code Logic
+        const DEFAULT_URL = window.location.origin + '/public/word-submit.html'; // Auto-detect current host!
+        const qrImage = document.getElementById('qrImage');
+        const editContainer = document.getElementById('editContainer');
+        const qrUrlInput = document.getElementById('qrUrlInput');
+
+        function generateQrUrl(dataUrl) {
+            return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(dataUrl)}&color=000000`;
+        }
+
+        function loadQr() {
+            const savedUrl = localStorage.getItem('qr_target_url') || DEFAULT_URL;
+            qrImage.src = generateQrUrl(savedUrl);
+            qrUrlInput.value = savedUrl;
+        }
+
+        function toggleEdit() {
+            editContainer.style.display = editContainer.style.display === 'none' ? 'block' : 'none';
+            // Move edit container to be fixed near the button if needed, or leave it in card.
+            // Since the button is now far away, let's make the edit container fixed too so context isn't lost.
+            if (editContainer.style.display === 'block') {
+                editContainer.style.position = 'fixed';
+                editContainer.style.bottom = '80px';
+                editContainer.style.right = '20px';
+                editContainer.style.zIndex = '1001';
+                editContainer.style.background = 'rgba(0,0,0,0.9)';
+                editContainer.style.padding = '15px';
+                editContainer.style.borderRadius = '10px';
+                editContainer.style.border = '1px solid #444';
+                editContainer.style.width = '300px';
+            }
+        }
+
+        function saveQrUrl() {
+            const newUrl = qrUrlInput.value.trim();
+            if (newUrl) {
+                localStorage.setItem('qr_target_url', newUrl);
+                loadQr();
+                toggleEdit();
+            }
+        }
+
+        // Initialize QR
+        loadQr();
+
         // Real-time updates
         function updateDisplay() {
-            fetch('https://my-suno-backend.onrender.com/api/words')
+            // Use absolute path for API to ensure it works on port 8080 too
+            fetch('http://localhost:8000/api/words')
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('wordCount').textContent = data.words.length;
-                    document.getElementById('participantCount').textContent = data.words.length;
+                    document.getElementById('wordCount').textContent = data.count || data.words.length; // Handle both formats
+
+                    // Update participants count
+                    if (data.participants !== undefined) {
+                        document.getElementById('participantCount').textContent = data.participants;
+                    } else {
+                        // Fallback if API doesn't return participants
+                        document.getElementById('participantCount').textContent = data.count || data.words.length;
+                    }
 
                     const preview = document.getElementById('wordsPreview');
-                    if (data.words.length > 0) {
+                    if (data.words && data.words.length > 0) {
                         preview.innerHTML = data.words.map(word =>
                             `<span class="word-tag">${word}</span>`
                         ).join('');
+                    } else {
+                        preview.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.3);">Waiting for words...</div>';
                     }
                 })
                 .catch(err => console.error(err));

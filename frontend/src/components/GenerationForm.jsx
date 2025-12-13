@@ -46,6 +46,7 @@ const GenerationForm = ({ onStart, onSuccess, onError, isLoading, initialPrompt 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("Submit clicked!"); // DEBUG
         onStart();
 
         try {
@@ -69,11 +70,20 @@ const GenerationForm = ({ onStart, onSuccess, onError, isLoading, initialPrompt 
                 payload.title = undefined;
             }
 
+            console.log("Sending payload:", payload); // DEBUG
+
             await generateSong(payload)
-                .then(data => onSuccess(data))
-                .catch(err => onError(err));
+                .then(data => {
+                    console.log("Success:", data); // DEBUG
+                    onSuccess(data);
+                })
+                .catch(err => {
+                    console.error("API Error:", err); // DEBUG
+                    onError(err);
+                });
 
         } catch (err) {
+            console.error("Catch Error:", err); // DEBUG
             onError(err);
         }
     };

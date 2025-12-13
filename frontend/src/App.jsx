@@ -100,9 +100,27 @@ function App() {
 
   const handleSuccess = (response) => {
     setLoading(false);
-    if (response.data && response.data.data) {
-      const taskData = response.data.data;
-      const taskId = taskData.taskId;
+    console.log("handleSuccess called with:", response); // DEBUG
+
+    // The backend wraps result in { status: "success", data: ... }
+    // The inner data comes from Suno API. It might be { id: "..." } or { data: { taskId: "..." } } depending on version.
+
+    // Normalize the data source
+    const resultData = response.data;
+
+    if (resultData) {
+      // Check for upstream API errors (like insufficient credits 429)
+      if (resultData.code && resultData.code !== 200) {
+        console.error("Upstream Error:", resultData.msg); // DEBUG
+        setError(resultData.msg || "Upstream API Error");
+        return;
+      }
+
+      // Try to find the ID in various common places
+      const taskId = resultData.id || resultData.taskId || (resultData.data && resultData.data.taskId);
+
+      console.log("Extracted taskId:", taskId); // DEBUG
+
       if (taskId) {
         setPollingTasks(prev => [...prev, taskId]);
         setResults(prev => [{
@@ -111,7 +129,11 @@ function App() {
           title: 'Generating...',
           id: taskId
         }, ...prev]);
+      } else {
+        console.error("Could not find taskId in response data!", resultData);
       }
+    } else {
+      console.error("Response missing data property", response);
     }
   };
 

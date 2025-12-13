@@ -16,6 +16,10 @@ collected_words = []
 
 class WordSubmission(BaseModel):
     word: str
+    browser_id: str = None  # Optional for backward compatibility
+
+# In-memory storage for unique participants
+unique_participants = set()
 
 # CORS
 origins = [
@@ -38,39 +42,56 @@ app.add_middleware(
 def health_check():
     return {"status": "ok"}
 
-@app.post("/api/callback")
-async def receive_callback(request: Request):
-    """Receive callbacks from Suno API when generation is complete"""
-    try:
-        data = await request.json()
-        print(f"Received callback: {data}")
-        
-        # Store the result by job ID or other identifier
-        if "id" in data or "task_id" in data:
-            job_id = data.get("id") or data.get("task_id")
-            job_storage[job_id] = data
-        
-        return {"status": "received"}
-    except Exception as e:
-        print(f"Callback error: {e}")
-        return {"status": "error", "message": str(e)}
+# Mount static files (frontend/public) to serve directly
+# Mount static files (frontend/public) to serve directly
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+import sys
 
-@app.get("/api/status/{task_id}")
-def poll_task_status(task_id: str):
-    """Poll Suno API for task status"""
-    try:
-        result = get_music_status(task_id)
-        return {"status": "success", "data": result}
-    except Exception as e:
-        print(f"Error polling status: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+# Robust path resolution
+current_file = Path(__file__).resolve()
+backend_dir = current_file.parent
+project_root = backend_dir.parent
 
-@app.get("/api/job/{job_id}")
-def get_job_status(job_id: str):
-    """Get the status of a generation job"""
-    if job_id in job_storage:
-        return {"status": "success", "data": job_storage[job_id]}
-    return {"status": "pending", "message": "Job not yet complete"}
+# Candidate paths to checking
+candidates = [
+    project_root / "frontend" / "public",
+    backend_dir / "../frontend/public",
+    Path("E:/Kirtikumar/Projects/AI_music_local/ai-generated-music/frontend/public"), # Hardcoded fallback
+    Path("./frontend/public").resolve()
+]
+
+static_path = None
+for candidate in candidates:
+    resolved = candidate.resolve()
+    print(f"DEBUG: Checking path: {resolved}", flush=True)
+    if resolved.exists() and resolved.is_dir():
+        static_path = resolved
+        print(f"DEBUG: FOUND static path at: {resolved}", flush=True)
+        break
+
+if static_path:
+    app.mount("/public", StaticFiles(directory=str(static_path)), name="public")
+else:
+    print("CRITICAL WARNING: Could not find 'frontend/public' directory! Static files will 404.", flush=True)
+    print(f"Searched in: {[str(c) for c in candidates]}", flush=True)
+
+@app.get("/api/debug-config")
+def debug_config():
+    return {
+        "status": "debug",
+        "static_path_resolved": str(static_path) if static_path else None,
+        "is_mounted": (static_path is not None),
+        "current_working_dir": os.getcwd(),
+        "file_location": str(current_file),
+        "candidates_checked": [str(c) for c in candidates]
+    }
+
+# Redirect root to word-submit
+from fastapi.responses import RedirectResponse
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/public/word-submit.html")
 
 @app.post("/api/submit-word")
 async def submit_word(submission: WordSubmission):
@@ -88,29 +109,33 @@ async def submit_word(submission: WordSubmission):
         
         if not new_words:
             raise HTTPException(status_code=400, detail="No valid words found in submission")
-
-        collected_words.extend(new_words)
+            
+        # Track unique participant
+        if submission.browser_id:
+            unique_participants.add(submission.browser_id)
         
-        return {
-            "status": "success",
-            "message": f"{len(new_words)} words submitted successfully",
-            "total_words": len(collected_words)
-        }
+        collected_words.extend(new_words)
+        print(f"Received words: {new_words} from {submission.browser_id}")
+        return {"status": "success", "message": "Words added", "count": len(collected_words), "participants": len(unique_participants)}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"Error submitting word: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/words")
 def get_words():
     """Get all collected words"""
     return {
         "words": collected_words,
-        "count": len(collected_words)
+        "count": len(collected_words),
+        "participants": len(unique_participants)
     }
 
-@app.get("/api/word-count")
-def get_word_count():
-    """Get count of collected words"""
-    return {"count": len(collected_words)}
+@app.delete("/api/words")
+def clear_words():
+    """Clear all collected words"""
+    collected_words.clear()
+    unique_participants.clear()
+    return {"status": "success", "message": "All words cleared"}
 
 @app.delete("/api/words/{index}")
 def remove_word(index: int):
@@ -124,13 +149,6 @@ def remove_word(index: int):
             raise HTTPException(status_code=404, detail="Word index out of range")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.delete("/api/words")
-def clear_words():
-    """Clear all collected words (admin function)"""
-    global collected_words
-    collected_words = []
-    return {"status": "success", "message": "All words cleared"}
 
 @app.post("/api/generate", response_model=GenerateResponse)
 def generate_song(request: GenerateRequest):

@@ -389,9 +389,9 @@
 
     <script>
         // Configure this URL based on your setup:
-        // For localhost testing: 'http://localhost:8000'
-        // For hosted version with ngrok: 'https://your-ngrok-url.ngrok.io'
-        const API_BASE = 'https://my-suno-backend.onrender.com';
+        // If running on port 8080 (static server), point to backend at 8000
+        // Otherwise (Cloudflare/Tunnel), use relative path
+        const API_BASE = window.location.port === '8080' ? 'http://localhost:8000' : '';
 
         const words = [
             "Strategic", "Fearless", "Relentless", "Results-driven",
@@ -469,6 +469,20 @@
             });
         });
 
+        // Generate or retrieve unique browser ID
+        function getBrowserId() {
+            let id = localStorage.getItem('suno_browser_id');
+            if (!id) {
+                // Simple UUID generator
+                id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                localStorage.setItem('suno_browser_id', id);
+            }
+            return id;
+        }
+
         // Handle Submission
         submitBtn.addEventListener('click', async () => {
             const word = wordInput.value.trim();
@@ -481,22 +495,30 @@
             submitBtn.textContent = 'Submitting...';
 
             try {
-                const response = await fetch(`${API_BASE}/api/submit-word`, {
+                // If API_BASE is empty, we must ensure /api starts with /
+                const url = `${API_BASE}/api/submit-word`;
+                const browserId = getBrowserId();
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ word })
+                    body: JSON.stringify({
+                        word: word,
+                        browser_id: browserId
+                    })
                 });
 
                 if (response.ok) {
                     showSuccess();
                 } else {
-                    throw new Error('Submission failed');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || 'Server returned error: ' + response.status);
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to submit word. Please try again.');
+                console.error('Submission Error:', error);
+                console.log('Current API_BASE:', API_BASE);
+                alert('Connection Failed:\n' + error.message + '\n\nMake sure the Backend window is running!');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit';
             }
