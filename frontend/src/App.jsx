@@ -4,7 +4,15 @@ import SongResult from './components/SongResult';
 import { pollTaskStatus } from './api';
 
 function App() {
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState(() => {
+    const saved = localStorage.getItem('suno_results');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Persist results
+  useEffect(() => {
+    localStorage.setItem('suno_results', JSON.stringify(results));
+  }, [results]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pollingTasks, setPollingTasks] = useState([]);
@@ -36,15 +44,16 @@ function App() {
         try {
           const response = await pollTaskStatus(taskId);
 
-          if (response.status === 'success' && response.data && response.data.data) {
-            const taskData = response.data.data;
+          if ((response.status === 'success' || response.code === 200) && response.data) {
+            // Handle both wrapped and unwrapped data structures
+            const taskData = response.data.data || response.data;
             // Check if task is complete
-            if (taskData.status === 'SUCCESS' || taskData.status === 'FIRST_SUCCESS') {
+            if (taskData.status === 'SUCCESS' || taskData.status === 'FIRST_SUCCESS' || taskData.status === 'TEXT_SUCCESS') {
               const songs = taskData.sunoData || taskData.response?.sunoData || [];
 
               // Only add songs that are actually complete (not still processing)
               const completeSongs = songs.filter(song =>
-                song.status === 'complete' || song.audio_url || song.audioUrl
+                song.status === 'complete' || song.audio_url || song.audioUrl || song.streamAudioUrl
               );
 
               if (completeSongs.length > 0) {
@@ -69,7 +78,7 @@ function App() {
               }
 
               // Stop polling when task status is SUCCESS (all songs complete)
-              if (taskData.status === 'SUCCESS') {
+              if (taskData.status === 'SUCCESS' || taskData.status === 'TEXT_SUCCESS') {
                 setPollingTasks(prev => prev.filter(id => id !== taskId));
               }
             }
@@ -93,7 +102,7 @@ function App() {
           setPollingTasks(prev => prev.filter(id => id !== taskId));
         }
       }
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [pollingTasks]);
@@ -120,6 +129,7 @@ function App() {
       const taskId = resultData.id || resultData.taskId || (resultData.data && resultData.data.taskId);
 
       console.log("Extracted taskId:", taskId); // DEBUG
+      console.log("SONG ID :", taskId);
 
       if (taskId) {
         setPollingTasks(prev => [...prev, taskId]);

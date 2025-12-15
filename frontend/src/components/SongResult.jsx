@@ -1,10 +1,18 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const SongResult = ({ song }) => {
     const audioRef = useRef(null);
     const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
+    const [duration, setDuration] = useState(song.duration || song.metadata?.duration || song.audio_duration || 0);
     const [isPlaying, setIsPlaying] = useState(false);
+
+    // Update duration if song data updates (e.g. via polling)
+    useEffect(() => {
+        const d = song.duration || song.metadata?.duration || song.audio_duration;
+        if (d) {
+            setDuration(d);
+        }
+    }, [song]);
 
     // Graceful fallback if song is just an ID or incomplete
     if (!song) return null;
@@ -22,14 +30,15 @@ const SongResult = ({ song }) => {
     }
 
     // Map Suno API fields to our display
-    const audioUrl = song.audioUrl || song.audio_url;
+    // Prioritize direct Suno links (source*) as they often support metadata better than proxies
+    const audioUrl = song.sourceAudioUrl || song.sourceStreamAudioUrl || song.audioUrl || song.audio_url || song.streamAudioUrl;
     const imageUrl = song.imageUrl || song.image_url;
     const title = song.title || "Untitled Track";
     const tags = song.tags || song.style;
     const status = song.status;
 
     const formatTime = (time) => {
-        if (isNaN(time)) return '0:00';
+        if (!time || isNaN(time) || time === Infinity) return '0:00';
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -37,21 +46,40 @@ const SongResult = ({ song }) => {
 
     const handleTimeUpdate = () => {
         if (audioRef.current) {
-            setCurrentTime(audioRef.current.currentTime);
+            const ct = audioRef.current.currentTime;
+            setCurrentTime(ct);
+
+            // Aggressively try to recover duration if it's missing
+            if (duration === 0) {
+                const d = audioRef.current.duration;
+                if (!isNaN(d) && d !== Infinity && d > 0) {
+                    setDuration(d);
+                }
+            }
         }
     };
 
     const handleLoadedMetadata = () => {
         if (audioRef.current) {
-            // Check if duration is valid number (infinity sometimes happens with streams)
             const d = audioRef.current.duration;
-            if (!isNaN(d) && d !== Infinity) {
+            if (!isNaN(d) && d !== Infinity && d > 0) {
                 setDuration(d);
+            } else if (song.duration) {
+                setDuration(song.duration);
             } else if (song.metadata?.duration) {
                 setDuration(song.metadata.duration);
             }
         }
     };
+
+    const handleDurationChange = () => {
+        if (audioRef.current) {
+            const d = audioRef.current.duration;
+            if (!isNaN(d) && d !== Infinity && d > 0) {
+                setDuration(d);
+            }
+        }
+    }
 
     const togglePlay = (e) => {
         e.stopPropagation();
@@ -102,7 +130,7 @@ const SongResult = ({ song }) => {
                 <h3 className="font-bold text-sm text-white truncate leading-tight">{title}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-white/40 text-xs truncate font-mono">
-                        {audioUrl ? `${formatTime(currentTime)} / ${formatTime(duration || song.metadata?.duration || 0)}` : (song.metadata?.type || 'Generated Track')}
+                        {audioUrl ? `${formatTime(currentTime)} / ${formatTime(duration)}` : (song.metadata?.type || 'Generated Track')}
                     </span>
 
                     {status && status !== 'complete' && (
@@ -128,6 +156,9 @@ const SongResult = ({ song }) => {
                             onEnded={() => setIsPlaying(false)}
                             onTimeUpdate={handleTimeUpdate}
                             onLoadedMetadata={handleLoadedMetadata}
+                            onDurationChange={handleDurationChange}
+                            preload="auto"
+                            crossOrigin="anonymous"
                             className="hidden"
                         />
                         <button
@@ -157,6 +188,7 @@ const SongResult = ({ song }) => {
                     </div>
                 )}
             </div>
+            {/* Debug Info Removed */}
         </div>
     );
 };

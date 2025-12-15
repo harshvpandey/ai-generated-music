@@ -7,15 +7,26 @@ load_dotenv()
 BASE_URL = os.getenv("SUNO_BASE_URL", "https://api.sunoapi.org")
 API_KEY = os.getenv("SUNO_API_KEY")
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 def generate_music(data: dict):
     if not API_KEY:
         raise Exception("SUNO_API_KEY is not set in environment variables.")
 
     url = f"{BASE_URL}/api/v1/generate"
     
-    # For polling approach, we don't need a callback URL
-    # But the API requires it, so we'll provide a dummy one
-    callback_url = "https://example.com/callback"
+    # Determine callback URL
+    public_url = os.getenv("PUBLIC_URL")
+    if public_url:
+        public_url = public_url.strip() # Remove potential leading/trailing spaces
+        callback_url = f"{public_url.rstrip('/')}/api/callback"
+        print(f"CONFIG: Callback Mode Enabled. Public URL: {public_url}")
+        print(f"Using callback URL: {callback_url}")
+    else:
+        # Fallback to dummy for polling
+        callback_url = "https://example.com/callback"
+        print("CONFIG: Polling Mode Active. (Add PUBLIC_URL to .env for Fast Mode)")
     
     # Map our schema fields to the exact fields expected by Suno API
     
