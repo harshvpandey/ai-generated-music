@@ -46,6 +46,7 @@
       background: #000000;
       color: white;
       min-height: 100vh;
+      min-height: 100vh;
       overflow-x: hidden;
       position: relative;
     }
@@ -200,11 +201,52 @@
     .progress-bar {
       background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
     }
+
+    @keyframes bg-glow-pulse {
+
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    .bg-glowing-effect {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.4), rgba(168, 85, 247, 0.25), rgba(79, 70, 229, 0.1) 80%, rgba(0, 0, 0, 0) 100%);
+      pointer-events: none;
+      z-index: 0;
+      animation: bg-glow-pulse 4s ease-in-out infinite alternate;
+    }
+
+    /* Custom Scrollbar for Playlist */
+    .playlist-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 
 <body class="bg-black text-white relative">
   <!-- Background Blobs -->
+  <div class="bg-glowing-effect"></div>
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
@@ -213,29 +255,18 @@
   <div class="min-h-screen w-full p-4 lg:p-6 flex flex-col relative z-10">
 
     <!-- Header -->
-    <header class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4 md:gap-0">
-      <div class="flex items-center gap-3">
+    <header class="flex flex-col md:flex-row items-center justify-center mb-6 gap-4 md:gap-0">
+      <div class="flex items-center gap-4">
         <div
-          class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
           </svg>
         </div>
         <div>
-          <h1 class="text-2xl font-bold tracking-tight">JioAI Music</h1>
-          <p class="text-sm text-white/60 font-medium">Birthday Celebration</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-6">
-        <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
-          <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-          <span class="text-sm font-medium text-white/90">Live Event</span>
-        </div>
-        <div class="text-right">
-          <p class="text-xs text-white/50 uppercase tracking-wider font-semibold">Guest of Honor</p>
-          <p class="text-xl font-bold gradient-text">Mr. Anish Shah</p>
+          <h1 class="text-4xl font-extrabold tracking-wide">JioAI Music</h1>
+          <p class="text-lg text-white/60 font-medium tracking-wider">Birthday Celebration</p>
         </div>
       </div>
     </header>
@@ -247,23 +278,18 @@
       <section class="col-span-1 lg:col-span-3 flex flex-col">
         <div class="glass-card rounded-2xl p-6 flex-1 flex flex-col">
           <div class="text-center mb-4">
-            <span
-              class="inline-flex items-center gap-2 bg-primary/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold mb-3 border border-primary/20">
-              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-              STEP 1
-            </span>
-            <h2 class="text-xl font-bold mb-1 text-white">Scan & Share</h2>
-            <p class="text-sm text-white/60">Describe the guest in one word</p>
+            <h2 class="text-3xl font-bold mb-1 text-white">Scan & Share</h2>
+            <p class="text-lg text-white/60">Describe Anish Bhai in one word</p>
           </div>
 
           <!-- QR Code -->
-          <div class="flex-1 flex items-center justify-center">
-            <div class="qr-glow rounded-2xl p-1 bg-gradient-to-br from-indigo-500 to-purple-500">
+          <div class="flex-1 flex items-center justify-center relative pt-8">
+            <div class="qr-glow rounded-2xl p-1 bg-gradient-to-br from-indigo-500 to-purple-500 relative z-10">
               <div class="bg-white p-4 rounded-xl">
                 <!-- Using the same SVG but keeping it simple for now or Image -->
                 <img
                   src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5"
-                  alt="QR Code" class="w-40 h-40 block">
+                  alt="QR Code" class="w-64 h-64 block">
               </div>
             </div>
           </div>
@@ -289,32 +315,20 @@
       <section class="col-span-1 lg:col-span-5 flex flex-col">
         <div class="glass-card rounded-2xl p-6 flex-1 flex flex-col">
           <div class="text-center mb-4">
-            <span
-              class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-xs font-bold mb-3 border border-purple-500/20">
-              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z" />
-              </svg>
-              LIVE RESULTS
-            </span>
-            <h2 class="text-xl font-bold mb-1 text-white">What Makes Anish Shah Special?</h2>
-            <p class="text-sm text-white/60">Words from friends & family</p>
+            <h2 class="text-3xl font-bold mb-1 text-white">Anish Bhai's Superpowers</h2>
+            <p class="text-lg text-white/60">Words from leaders</p>
           </div>
 
           <!-- Word Cloud Display -->
-          <div class="flex-1 flex items-center justify-center p-4 overflow-hidden relative" id="wordCloudContainer">
+          <div class="flex-1 flex items-center justify-center p-4 pt-10 overflow-hidden relative"
+            id="wordCloudContainer">
             <div class="text-center leading-loose" id="wordsList">
               <span class="text-white/50">Waiting for words...</span>
             </div>
           </div>
 
           <!-- Recently Added -->
-          <!-- Recently Added -->
-          <div class="mt-4 pt-4 border-t border-white/10">
-            <p class="text-xs text-white/40 mb-2 uppercase tracking-widest font-bold">Recently Added</p>
-            <div class="flex items-center gap-2 flex-wrap" id="recentWords">
-              <!-- Recent words will appear here -->
-            </div>
-          </div>
+
 
           <!-- Admin Controls -->
           <div class="mt-4 pt-4 border-t border-white/10 flex gap-3">
@@ -334,24 +348,15 @@
       <section class="col-span-1 lg:col-span-4 flex flex-col">
         <div class="glass-card rounded-2xl p-6 flex-1 flex flex-col">
           <div class="text-center mb-4">
-            <span
-              class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold mb-3 shadow-lg shadow-indigo-500/20">
-              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-              </svg>
-              AI GENERATED
-            </span>
-            <h2 class="text-xl font-bold mb-1 text-white">Anish Shah's Song</h2>
-            <p class="text-sm text-white/60">Powered by your words</p>
+            <h2 class="text-3xl font-bold mb-1 text-white">Anish Bhai's Song</h2>
+            <p class="text-lg text-white/60">Powered by your words</p>
           </div>
 
-          <!-- Album Art & Player -->
-          <div class="flex-1 flex flex-col items-center justify-center">
+          <div class="flex-1 flex flex-col justify-start pt-4 w-full max-w-sm mx-auto">
             <!-- Album Art -->
-            <div class="relative mb-6 group">
+            <div class="relative mb-4 group w-40 h-40 mx-auto">
               <div
-                class="w-48 h-48 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden shadow-2xl relative">
+                class="w-full h-full rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden shadow-2xl relative">
                 <div class="absolute inset-0 bg-black/10"></div>
                 <div class="w-full h-full flex items-center justify-center relative z-10">
                   <svg class="w-20 h-20 text-white/90 drop-shadow-md" fill="none" stroke="currentColor"
@@ -375,11 +380,11 @@
             <!-- Song Info -->
             <div class="text-center mb-6">
               <h3 class="text-xl font-bold mb-1 text-white">"Brilliant & Kind"</h3>
-              <p class="text-sm text-white/50">A song for Anish Shah</p>
+              <p class="text-sm text-white/50">A song for Anish Bhai</p>
             </div>
 
             <!-- Progress Bar -->
-            <div class="w-full max-w-xs mb-6">
+            <div class="w-full mb-3">
               <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div class="progress-bar h-full rounded-full" style="width: 65%"></div>
               </div>
@@ -390,54 +395,138 @@
             </div>
 
             <!-- Playback Controls -->
-            <div class="flex items-center gap-6">
+            <div class="flex items-center justify-center gap-6 mb-8">
               <button
-                class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8.445 14.832A1 1 0 0010 14v-4a1 1 0 00-1.555-.832l-3 2a1 1 0 000 1.664l3 2z" />
                   <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" />
                 </svg>
               </button>
 
               <button
-                class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-transform shadow-lg shadow-indigo-500/30">
-                <svg class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                class="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-transform shadow-lg shadow-indigo-500/30">
+                <svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                 </svg>
               </button>
 
               <button
-                class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L8 12.202V14a1 1 0 001.555.832l4-2.5a1 1 0 000-1.664l-4-2.5A1 1 0 008 9v1.798L4.555 5.168z" />
                 </svg>
               </button>
             </div>
+
+            <!-- Up Next List -->
+            <div class="w-full">
+              <div class="flex items-center gap-4 mb-4">
+                <h4 class="text-xs font-bold text-white/40 uppercase tracking-widest">Up Next</h4>
+                <div class="h-px bg-white/10 flex-1"></div>
+              </div>
+
+              <div class="space-y-3 max-h-[160px] overflow-y-auto playlist-scroll pr-2">
+                <!-- Current Playing Item -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-white/10 to-transparent border border-white/10 group cursor-pointer hover:bg-white/5 transition-colors">
+                  <div
+                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h5 class="text-sm font-bold text-white truncate">Brilliant & Kind</h5>
+                    <p class="text-[10px] text-white/50 truncate">AI generated • From audience words</p>
+                  </div>
+                  <div class="flex items-end gap-0.5 h-3 mr-2">
+                    <div class="w-0.5 bg-green-400 h-full animate-pulse"></div>
+                    <div class="w-0.5 bg-green-400 h-2/3 animate-pulse" style="animation-delay: 0.1s"></div>
+                    <div class="w-0.5 bg-green-400 h-full animate-pulse" style="animation-delay: 0.2s"></div>
+                    <div class="w-0.5 bg-green-400 h-1/2 animate-pulse" style="animation-delay: 0.3s"></div>
+                  </div>
+                  <span class="text-xs text-white/50 font-mono">2:38</span>
+                </div>
+
+                <!-- Next Item 1 -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer group">
+                  <div
+                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h5 class="text-sm font-bold text-white/90 truncate">Visionary Leader</h5>
+                    <p class="text-[10px] text-white/40 truncate">AI generated • From audience words</p>
+                  </div>
+                  <span class="text-xs text-white/40 font-mono">3:12</span>
+                </div>
+
+                <!-- Next Item 2 -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer group">
+                  <div
+                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h5 class="text-sm font-bold text-white/90 truncate">Calm & Resilient</h5>
+                    <p class="text-[10px] text-white/40 truncate">AI generated • From audience words</p>
+                  </div>
+                  <span class="text-xs text-white/40 font-mono">2:56</span>
+                </div>
+
+                <!-- Next Item 3 -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer group">
+                  <div
+                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h5 class="text-sm font-bold text-white/90 truncate">Inspired Minds</h5>
+                    <p class="text-[10px] text-white/40 truncate">AI generated • From audience words</p>
+                  </div>
+                  <span class="text-xs text-white/40 font-mono">2:22</span>
+                </div>
+
+                <!-- Next Item 4 -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer group">
+                  <div
+                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h5 class="text-sm font-bold text-white/90 truncate">Celebrating Anish</h5>
+                    <p class="text-[10px] text-white/40 truncate">AI generated • From audience words</p>
+                  </div>
+                  <span class="text-xs text-white/40 font-mono">2:41</span>
+                </div>
+
+              </div>
+            </div>
+
           </div>
 
           <!-- Action Buttons -->
-          <div class="mt-6 pt-6 border-t border-white/10">
-            <div class="grid grid-cols-2 gap-4">
-              <button
-                class="flex items-center justify-center gap-2 bg-white text-black py-3 px-4 rounded-xl font-bold hover:bg-gray-200 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Generate
-              </button>
-              <button
-                class="flex items-center justify-center gap-2 bg-white/5 text-white py-3 px-4 rounded-xl font-semibold hover:bg-white/10 transition-colors border border-white/10">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                Share
-              </button>
-            </div>
-          </div>
+
         </div>
       </section>
       </section>
@@ -450,9 +539,19 @@
             class="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none -mr-32 -mt-32">
           </div>
 
-          <h2 class="text-xl font-bold mb-6 text-white flex items-center gap-2">
-            <span>⚙️</span> Create Personalized Song
-          </h2>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <span>⚙️</span> Create Personalized Song
+            </h2>
+            <button onclick="clearAllWords()"
+              class="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-bold uppercase tracking-wider rounded-lg border border-red-500/20 transition-all flex items-center gap-2">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clear All
+            </button>
+          </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="space-y-6">
@@ -484,25 +583,12 @@
       </section>
     </main>
 
-    <!-- Footer -->
-    <footer
-      class="mt-6 flex flex-col md:flex-row items-center justify-between text-sm text-white/40 font-medium gap-4 md:gap-0">
-      <p>Powered by AI • Making celebrations unforgettable</p>
-      <div class="flex items-center gap-4">
-        <button class="hover:text-white transition-colors">Settings</button>
-        <button class="hover:text-white transition-colors">Help</button>
-        <button
-          class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-white/90">
-          New Guest
-        </button>
-      </div>
-    </footer>
+
   </div>
   <script>
     const API_BASE = 'https://my-suno-backend.onrender.com'; // Adjust if needed
     let currentWords = [];
     const wordsListEl = document.getElementById('wordsList');
-    const recentWordsEl = document.getElementById('recentWords');
     const totalResponsesEl = document.querySelector('.text-2xl.font-bold.text-indigo-400'); // Valid Selector Update Needed
     const uniqueWordsEl = document.querySelector('.text-2xl.font-bold.text-purple-400');   // Valid Selector Update Needed
 
@@ -518,11 +604,7 @@
       "text-3xl font-semibold text-white bg-white/5 border border-white/10"
     ];
 
-    const recentStyles = [
-      "px-3 py-1 bg-indigo-500/20 text-indigo-300 text-sm rounded-full font-medium animate-pulse border border-indigo-500/30",
-      "px-3 py-1 bg-purple-500/20 text-purple-300 text-sm rounded-full font-medium border border-purple-500/30",
-      "px-3 py-1 bg-white/10 text-white/80 text-sm rounded-full font-medium border border-white/10"
-    ];
+
 
     let rawWords = []; // To store raw API response for comparison
 
@@ -546,7 +628,6 @@
     function updateUI() {
       if (currentWords.length === 0) {
         wordsListEl.innerHTML = '<span class="text-white/50">Waiting for words...</span>';
-        recentWordsEl.innerHTML = '';
         updateStats(0, 0);
         return;
       }
@@ -603,11 +684,7 @@
 
       // 4. Update Recently Added (Top 3 from raw list)
       // currentWords is reversed (newest first)
-      const recent3 = currentWords.slice(0, 3);
-      recentWordsEl.innerHTML = recent3.map((word, index) => {
-        const style = recentStyles[index % recentStyles.length];
-        return `<span class="${style}">+ ${word}</span>`;
-      }).join('');
+
     }
 
     function updateStats(total, unique) {
@@ -726,6 +803,42 @@
       const encodedPrompt = encodeURIComponent(prompt);
       // Redirect to root with prompt param (assuming that's where the generator lives)
       window.location.href = `/?prompt=${encodedPrompt}`;
+    }
+
+    function clearAllWords() {
+      if (!confirm('Are you sure you want to clear ALL collected words? This cannot be undone.')) {
+        return;
+      }
+
+      fetch(`${API_BASE}/api/words`, {
+        method: 'DELETE'
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Reset local state
+            currentWords = [];
+            rawWords = [];
+
+            // Force UI update
+            updateUI();
+            updatePromptPreview();
+
+            // Show feedback
+            const btn = document.querySelector('button[onclick="clearAllWords()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Cleared!';
+            setTimeout(() => {
+              btn.innerHTML = originalText;
+            }, 2000);
+          } else {
+            alert('Failed to clear words: ' + (data.message || 'Unknown error'));
+          }
+        })
+        .catch(error => {
+          console.error('Error clearing words:', error);
+          alert('Error clearing words. Check console for details.');
+        });
     }
 
     // Hook updatePromptPreview into updateUI to keep it live
