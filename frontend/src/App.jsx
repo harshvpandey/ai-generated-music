@@ -19,6 +19,7 @@ function App() {
   const [personName, setPersonName] = useState("Anish Bhai");
   const [occasion, setOccasion] = useState("Birthday Celebration");
   const [promptPreview, setPromptPreview] = useState("Waiting for words...");
+  const [isManualPrompt, setIsManualPrompt] = useState(false);
 
   // Audio Playback
   const [currentAudio, setCurrentAudio] = useState(null);
@@ -133,20 +134,16 @@ function App() {
 
     const topWords = sortedUnique.slice(0, 15).join(', ');
 
-    let text = "";
-    if (!personName && !occasion) {
-      text = `Create a song for a person. Their qualities are: ${topWords}`;
-    } else if (!personName) {
-      text = `Create a song for ${occasion}. Their qualities are: ${topWords}`;
-    } else if (!occasion) {
-      text = `Create a song for ${personName}. Their qualities are: ${topWords}`;
-    } else {
-      text = `Create a song for ${personName} for their ${occasion}. Their qualities are: ${topWords}`;
-    }
+    const nameToUse = personName || "Anish Bhai";
+    const occasionToUse = occasion || "Birthday";
+
+    // New Bollywood-style prompt + Fixed Title instruction
+    const text = `Create a heartfelt Hindi Bollywood-style celebration-cum-tribute song in a male voice for ${nameToUse}'s ${occasionToUse}, inspired by classic melodies with a happy and pleasant mood, honoring his qualities: ${topWords}. And the title of the song should always be "${nameToUse} ki Shaaan"`;
     return text;
   };
 
   const updatePromptPreview = () => {
+    if (isManualPrompt) return; // Don't overwrite manual edits
     const text = generatePromptText();
     setPromptPreview(text || "Waiting for words...");
   };
@@ -154,7 +151,14 @@ function App() {
   // --- Handlers ---
 
   const handleGenerate = async () => {
-    const prompt = generatePromptText();
+    // Use the current prompt state, allowing manual edits
+    let prompt = promptPreview;
+
+    // Fallback if prompt is empty or just placeholder
+    if (!prompt || prompt === "Waiting for words...") {
+      prompt = generatePromptText();
+    }
+
     if (!prompt) {
       alert("No words collected yet!");
       return;
@@ -465,17 +469,17 @@ function App() {
                 JioAI Music
               </h1>
               <p className="text-xl text-white/50 font-medium tracking-wide">
-                Birthday Celebration
+
               </p>
             </div>
           </div>
         </header>
 
         {/* Main Grid */}
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch flex-1">
+        <main className="grid grid-cols-1 lg:grid-cols-[3fr_5.5fr_3.5fr] gap-6 items-stretch flex-1">
 
           {/* Left: QR & Stats */}
-          <section className="col-span-1 lg:col-span-3 flex flex-col h-full">
+          <section className="col-span-1 flex flex-col h-full">
             <div className="glass-panel p-8 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md flex flex-col h-full relative overflow-hidden">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-white mb-2">Scan & Submit</h2>
@@ -506,7 +510,7 @@ function App() {
           </section>
 
           {/* Center: Word Cloud */}
-          <section className="col-span-1 lg:col-span-5 flex flex-col h-full">
+          <section className="col-span-1 flex flex-col h-full">
             <div className="glass-panel rounded-3xl p-8 flex flex-col h-full border border-white/10 bg-black/40 backdrop-blur-md relative overflow-hidden">
 
               <div className="text-center mb-6">
@@ -541,12 +545,12 @@ function App() {
           </section>
 
           {/* Right: Song Generator */}
-          <section className="col-span-1 lg:col-span-4 flex flex-col">
+          <section className="col-span-1 flex flex-col">
             <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col relative border border-white/10 bg-black/40 backdrop-blur-md">
 
               {/* Header */}
               <div className="text-center mb-4 flex-shrink-0">
-                <h2 className="text-2xl font-bold mb-2 text-white">Anish Shah's Song</h2>
+                <h2 className="text-2xl font-bold mb-2 text-white">Anish Bhai's Song</h2>
                 <p className="text-lg text-white/60">Powered by your words</p>
               </div>
 
@@ -572,7 +576,7 @@ function App() {
               )}
 
               {/* Content */}
-              <div className="flex-1 flex flex-col relative overflow-hidden bg-black/20 rounded-xl p-4">
+              <div className="flex-1 flex flex-col relative overflow-hidden rounded-xl p-4">
                 {generatedSongs.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="relative mb-6 group">
@@ -685,41 +689,55 @@ function App() {
             </div>
           </section>
 
-          {/* Config (Bottom Hidden) */}
-          {showConfig && (
-            <section className="col-span-1 lg:col-span-12">
-              <div className="glass-panel rounded-2xl p-6 relative overflow-hidden bg-black/40 backdrop-blur-md border border-white/10">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2"><span>⚙️</span> Create Personalized Song</h2>
+        </main>
+
+        {/* Config Modal (Overlay) */}
+        {showConfig && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-2xl bg-black/90 border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2"><span>⚙️</span> Create Personalized Song</h2>
+                <div className="flex items-center gap-3">
                   <button onClick={handleClearWords} className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-bold uppercase tracking-wider rounded-lg border border-red-500/20 transition-all flex items-center gap-2">
                     Clear All
                   </button>
+                  <button
+                    onClick={() => setShowConfig(false)}
+                    className="p-2 text-white/40 hover:text-white transition-colors bg-white/5 rounded-lg hover:bg-white/10"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Person Name</label>
-                      <input type="text" value={personName} onChange={e => setPersonName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium" placeholder="e.g. Anish Bhai" />
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Occasion</label>
-                      <input type="text" value={occasion} onChange={e => setOccasion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all font-medium" placeholder="e.g. Birthday Celebration" />
-                    </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Person Name</label>
+                    <input type="text" value={personName} autoFocus={true} onChange={e => setPersonName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium" placeholder="e.g. Anish Bhai" />
                   </div>
                 </div>
-                <div className="mt-8 pt-6 border-t border-white/10">
-                  <label className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Prompt Preview</label>
-                  <div className="bg-black/20 rounded-xl p-4 text-white/80 font-mono text-sm leading-relaxed border border-white/5 min-h-[80px]">
-                    {promptPreview}
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Occasion</label>
+                    <input type="text" value={occasion} onChange={e => setOccasion(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all font-medium" placeholder="e.g. Birthday Celebration" />
                   </div>
                 </div>
               </div>
-            </section>
-          )}
-
-        </main>
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <label className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Prompt Preview (Editable)</label>
+                <textarea
+                  value={promptPreview}
+                  onChange={(e) => {
+                    setPromptPreview(e.target.value);
+                    setIsManualPrompt(true);
+                  }}
+                  className="w-full bg-black/20 rounded-xl p-4 text-white/80 font-mono text-sm leading-relaxed border border-white/5 min-h-[80px] focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all resize-none"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Persistent Audio Element */}
         <audio

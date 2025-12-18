@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Add Your Word</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <style>
@@ -359,18 +360,14 @@
                     Contribute one word that inspires you. Together, we'll create something magical.
                 </p>
 
-                <div class="form-group">
-                    <label for="word">Your Word(s)</label>
-                    <input type="text" id="word" name="word" placeholder="Select words or type them..."
-                        autocomplete="off">
-                </div>
+                <!-- Input removed as per request -->
 
-                <span class="pills-label">Or choose power words (multi-select):</span>
+                <span class="pills-label"></span>
                 <div class="pills-container" id="pillsContainer">
                     <!-- Pills will be injected here via JavaScript -->
                 </div>
 
-                <button type="button" id="submitBtn" class="submit-btn">
+                <button type="button" id="submitBtn" class="submit-btn" disabled>
                     Submit
                 </button>
             </div>
@@ -404,7 +401,6 @@
 
         const pillsContainer = document.getElementById('pillsContainer');
         const submitBtn = document.getElementById('submitBtn');
-        const wordInput = document.getElementById('word');
         const formSection = document.getElementById('formSection');
         const successSection = document.getElementById('successSection');
 
@@ -417,66 +413,33 @@
                 pill.addEventListener('click', () => toggleWordSelection(word, pill));
                 pillsContainer.appendChild(pill);
             });
+            updateSubmitButtonState();
         }
 
         // Handle Pill Selection (Toggle)
         function toggleWordSelection(word, pillElement) {
             pillElement.classList.toggle('active');
-            updateInputFromPills();
+            updateSubmitButtonState();
         }
 
-        // Update Input based on active pills
-        function updateInputFromPills() {
-            // Get all currently selected words from pills
-            const activePills = Array.from(document.querySelectorAll('.word-pill.active'));
-            const selectedWords = activePills.map(pill => pill.textContent);
-
-            // Get any custom words typed by user that aren't in the pills list
-            const currentInputValue = wordInput.value;
-            const currentParts = currentInputValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
-            // Identify custom words (not in the predefined list) so we don't lose them
-            let customWords = [];
-            currentParts.forEach(part => {
-                // Check if this part matches any of the predefined words (case insensitive)
-                const isPredefined = words.some(w => w.toLowerCase() === part.toLowerCase());
-                if (!isPredefined) {
-                    customWords.push(part);
-                }
-            });
-
-            // Combine selected pills with custom typed words
-            // Note: This simple logic prioritizes the pills list + custom words.
-            // If user unselects a pill, it disappears from input.
-            // If user selects a pill, it appears in input.
-
-            const allWords = [...selectedWords, ...customWords];
-            wordInput.value = allWords.join(', ');
+        // Update Submit Button State
+        function updateSubmitButtonState() {
+            const activeCount = document.querySelectorAll('.word-pill.active').length;
+            submitBtn.disabled = activeCount === 0;
         }
-
-        // Handle Input Changes (Sync back to pills)
-        wordInput.addEventListener('input', () => {
-            const currentText = wordInput.value;
-            // Split by comma, trim whitespace
-            const typedWords = currentText.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
-
-            document.querySelectorAll('.word-pill').forEach(pill => {
-                const pillWord = pill.textContent.toLowerCase();
-                if (typedWords.includes(pillWord)) {
-                    pill.classList.add('active');
-                } else {
-                    pill.classList.remove('active');
-                }
-            });
-        });
 
         // Handle Submission
         submitBtn.addEventListener('click', async () => {
-            const word = wordInput.value.trim();
-            if (!word) {
-                wordInput.focus();
+            // Get selected words directly from active pills
+            const activePills = Array.from(document.querySelectorAll('.word-pill.active'));
+            const selectedWords = activePills.map(pill => pill.textContent);
+
+            if (selectedWords.length === 0) {
+                alert("Please select at least one word.");
                 return;
             }
+
+            const word = selectedWords.join(', ');
 
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
@@ -516,7 +479,6 @@
         function resetForm() {
             formSection.classList.remove('hide');
             successSection.classList.remove('show');
-            wordInput.value = '';
             document.querySelectorAll('.word-pill').forEach(p => p.classList.remove('active'));
             submitBtn.disabled = false;
             submitBtn.textContent = 'Submit';
