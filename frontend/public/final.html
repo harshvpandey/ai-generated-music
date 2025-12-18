@@ -478,6 +478,7 @@
   <script>
     const API_BASE = 'https://my-suno-backend.onrender.com'; // Adjust if needed
     let currentWords = [];
+    let pollingInterval;
     const wordsListEl = document.getElementById('wordsList');
     const totalResponsesEl = document.getElementById('totalResponses');
     const uniqueWordsEl = document.getElementById('uniqueWords');
@@ -712,7 +713,14 @@
           startPolling(taskId);
         } else {
           console.error("Full Response Data:", data);
-          throw new Error("Received successful response but no Task ID was found in: " + JSON.stringify(data));
+
+          // Check for specific error messages in the nested data structure
+          const specificError = data.data?.msg || data.data?.message || data.msg || data.message;
+          if (specificError && (specificError.toLowerCase().includes('insufficient') || specificError.toLowerCase().includes('credit'))) {
+            throw new Error(specificError);
+          }
+
+          throw new Error("Received successful response but no Task ID was found.");
         }
       } catch (err) {
         console.error("Generation error:", err);
