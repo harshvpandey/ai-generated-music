@@ -16,30 +16,77 @@ body {
   position: relative;
 }
 
-/* Animations from index.html */
+/* Animations */
 @keyframes blob {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(30px, 30px) scale(1.1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(30px, 30px) scale(1.1);
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+  }
 }
 
 @keyframes soundwave {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
+
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
 }
 
 @keyframes bg-glow-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Utilities */
@@ -47,6 +94,13 @@ body {
   background: rgba(20, 20, 20, 0.6);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card-dark {
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
@@ -58,9 +112,15 @@ body {
   transition: all 0.3s ease;
   animation: float 3s ease-in-out infinite;
 }
-.word-cloud-word:nth-child(odd) { animation-delay: -1.5s; }
 
-.qr-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.word-cloud-word:nth-child(odd) {
+  animation-delay: -1.5s;
+}
+
+.qr-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
 .bg-glowing-effect {
   position: fixed;
   inset: 0;
@@ -68,6 +128,18 @@ body {
   pointer-events: none;
   z-index: 0;
   animation: bg-glow-pulse 4s ease-in-out infinite alternate;
+}
+
+/* Gradients */
+.text-gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
 }
 
 /* Blobs */
@@ -79,25 +151,50 @@ body {
   z-index: 0;
   pointer-events: none;
 }
+
 .blob-1 {
-  top: -10%; left: -10%; width: 500px; height: 500px;
+  top: -10%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
   background: #4f46e5;
   animation: blob 25s infinite alternate;
 }
+
 .blob-2 {
-  bottom: -10%; right: -10%; width: 500px; height: 500px;
+  bottom: -10%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
   background: #db2777;
   animation: blob 25s infinite alternate-reverse;
 }
+
 .blob-3 {
-  top: 40%; left: 40%; width: 400px; height: 400px;
+  top: 40%;
+  left: 40%;
+  width: 400px;
+  height: 400px;
   background: #005AAC;
   opacity: 0.2;
   animation: blob 30s infinite alternate;
 }
 
 /* Scrollbars */
-.playlist-scroll::-webkit-scrollbar { width: 4px; }
-.playlist-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
-.playlist-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-.playlist-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+.playlist-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.playlist-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.playlist-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.playlist-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

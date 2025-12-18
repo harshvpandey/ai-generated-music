@@ -130,7 +130,7 @@ export const SongGenerator: React.FC<SongGeneratorProps> = ({ onGenerationStart,
                 {!isLoading ? (
                     <button
                         onClick={handleGenerate}
-                        className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 font-bold text-lg text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        className="w-full py-4 rounded-xl bg-gradient-primary font-bold text-lg text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
                     >
                         Generate Anthem
                     </button>
