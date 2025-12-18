@@ -102,7 +102,7 @@ function App() {
     setLoading(false);
     if (response.data && response.data.data) {
       const taskData = response.data.data;
-      const taskId = taskData.taskId;
+      const taskId = taskData.taskId || taskData.id;
       if (taskId) {
         setPollingTasks(prev => [...prev, taskId]);
         setResults(prev => [{
