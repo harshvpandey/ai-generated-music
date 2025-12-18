@@ -1,32 +1,43 @@
 import React from 'react';
 
-export const QRDisplay: React.FC = () => {
-    // Using the host IP dynamically would be better, but for localhost dev:
-    const submitUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/submit`;
+interface QRDisplayProps {
+    totalWords: number;
+    uniqueCount: number;
+}
+
+export const QRDisplay: React.FC<QRDisplayProps> = ({ totalWords, uniqueCount }) => {
+
 
     return (
-        <div className="glass-card rounded-2xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group h-full">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div className="glass-card rounded-2xl p-6 flex flex-col items-center h-full">
+            <div className="text-center mb-4">
+                <h2 className="text-3xl font-bold mb-1 text-white">Scan & Share</h2>
+                <p className="text-lg text-white/60">Describe Anish Bhai in one word</p>
+            </div>
 
-            <div className="relative z-10 w-full flex flex-col items-center">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                    Scan to Join
-                </h3>
-
-                <div className="p-3 bg-white rounded-xl shadow-xl shadow-indigo-500/20 qr-glow mb-4">
-                    {/* Using a QR code generation service for simplicity, or could use a lib like qrcode.react */}
-                    {/* For now, using size 150x150 */}
-                    <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(submitUrl)}&color=000000&bgcolor=FFFFFF`}
-                        alt="Scan to submit words"
-                        className="w-[150px] h-[150px] object-contain rounded-lg"
-                    />
+            <div className="flex-1 flex items-center justify-center relative pt-4 pb-4">
+                <div className="qr-glow rounded-2xl p-1 bg-gradient-to-br from-indigo-500 to-purple-500 relative z-10">
+                    <div className="bg-white p-4 rounded-xl">
+                        <img
+                            src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5"
+                            alt="QR Code"
+                            className="w-48 h-48 block object-contain"
+                        />
+                    </div>
                 </div>
+            </div>
 
-                <p className="text-sm text-white/60 mb-2">or visit</p>
-                <div className="py-2 px-4 rounded-lg bg-white/5 border border-white/10 text-indigo-300 font-mono text-sm break-all">
-                    {submitUrl}
+            <div className="w-full mt-auto pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between">
+                    <div className="text-center flex-1">
+                        <p className="text-2xl font-bold text-indigo-400">{totalWords}</p>
+                        <p className="text-xs text-white/50 font-medium uppercase tracking-wide">Responses</p>
+                    </div>
+                    <div className="h-8 w-px bg-white/10"></div>
+                    <div className="text-center flex-1">
+                        <p className="text-2xl font-bold text-purple-400">{uniqueCount}</p>
+                        <p className="text-xs text-white/50 font-medium uppercase tracking-wide">Unique Words</p>
+                    </div>
                 </div>
             </div>
         </div>

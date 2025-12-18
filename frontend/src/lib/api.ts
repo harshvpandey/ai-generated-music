@@ -52,6 +52,13 @@ export async function pollTaskStatus(taskId: string): Promise<TaskResponse> {
     try {
         const response = await fetch(`${API_BASE}/api/status/${taskId}`);
         const data = await response.json();
+
+        // Unwrap SunoAPI wrapper if present
+        // Expected structure: { status: "success", data: { code: 200, data: { status: "SUCCESS", ... } } }
+        if (data.data && data.data.data && data.data.code === 200) {
+            return data.data.data;
+        }
+
         return data.data || { status: 'UNKNOWN' };
     } catch (error) {
         console.error("Polling API Error:", error);

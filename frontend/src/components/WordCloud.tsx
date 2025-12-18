@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { fetchWords } from '../lib/api';
 
 interface WordCloudProps {
-    isPolling: boolean;
+    words: string[];
+    onGenerate: () => void;
+    onToggleConfig: () => void;
+    isConfigOpen: boolean;
 }
 
 const BUBBLE_STYLES = [
@@ -16,48 +18,24 @@ const BUBBLE_STYLES = [
     "text-3xl font-semibold text-white bg-white/5 border border-white/10"
 ];
 
-export const WordCloud: React.FC<WordCloudProps> = ({ isPolling }) => {
-    const [words, setWords] = useState<string[]>([]);
+export const WordCloud: React.FC<WordCloudProps> = ({ words, onGenerate, onToggleConfig, isConfigOpen }) => {
     const [displayWords, setDisplayWords] = useState<{ text: string; style: string }[]>([]);
-    const [totalWords, setTotalWords] = useState(0);
-    const [uniqueCount, setUniqueCount] = useState(0);
     const prevWordsRef = useRef<string[]>([]);
 
     useEffect(() => {
-        let interval: NodeJS.Timeout | null = null;
+        // Basic deep compare to avoid useless re-renders/animations
+        if (JSON.stringify(words) !== JSON.stringify(prevWordsRef.current)) {
+            prevWordsRef.current = words;
 
-        const loadWords = async () => {
-            const newWords = await fetchWords();
+            // Map to styles (ensure consistent styling based on word content or index)
+            const mapped = words.map((w, i) => ({
+                text: w,
+                style: BUBBLE_STYLES[i % BUBBLE_STYLES.length]
+            })).reverse(); // Show newest first
 
-            // Basic deep compare to avoid useless re-renders
-            if (JSON.stringify(newWords) !== JSON.stringify(prevWordsRef.current)) {
-                prevWordsRef.current = newWords;
-                setWords(newWords);
-
-                // Calculate stats
-                setTotalWords(newWords.length);
-                const unique = new Set(newWords.map(w => w.toLowerCase().trim()));
-                setUniqueCount(unique.size);
-
-                // Map to styles (ensure consistent styling based on word content or index)
-                const mapped = newWords.map((w, i) => ({
-                    text: w,
-                    style: BUBBLE_STYLES[i % BUBBLE_STYLES.length]
-                })).reverse(); // Show newest first
-
-                setDisplayWords(mapped);
-            }
-        };
-
-        if (isPolling) {
-            loadWords(); // Initial load
-            interval = setInterval(loadWords, 2000);
+            setDisplayWords(mapped);
         }
-
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [isPolling]);
+    }, [words]);
 
     return (
         <div className="glass-card rounded-2xl p-6 lg:p-8 flex flex-col h-full border-t border-white/10 relative overflow-hidden group">
@@ -66,23 +44,13 @@ export const WordCloud: React.FC<WordCloudProps> = ({ isPolling }) => {
             <div className="flex justify-between items-end mb-6 relative z-10">
                 <div>
                     <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                        Collected Words
+                        Anish Bhai's Superpowers
                     </h2>
-                    <p className="text-white/40 text-sm mt-1">Live from the audience</p>
-                </div>
-                <div className="flex gap-4">
-                    <div className="text-right">
-                        <div className="text-2xl font-bold text-white" id="totalResponses">{totalWords}</div>
-                        <div className="text-xs text-white/40 uppercase tracking-wider">Total</div>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-2xl font-bold text-indigo-400" id="uniqueWords">{uniqueCount}</div>
-                        <div className="text-xs text-indigo-400/60 uppercase tracking-wider">Unique</div>
-                    </div>
+                    <p className="text-white/40 text-sm mt-1">Words from leaders</p>
                 </div>
             </div>
 
-            <div className="flex-grow relative min-h-[300px] border border-white/5 rounded-xl bg-black/20 p-4 overflow-hidden">
+            <div className="flex-grow relative min-h-[300px] rounded-xl p-4 overflow-hidden mb-4">
                 {displayWords.length === 0 ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-white/30">
                         <p>Waiting for words...</p>
@@ -96,6 +64,22 @@ export const WordCloud: React.FC<WordCloudProps> = ({ isPolling }) => {
                         ))}
                     </div>
                 )}
+            </div>
+
+            {/* Admin Controls */}
+            <div className="pt-4 border-t border-white/10 flex gap-3 z-10">
+                <button
+                    onClick={onGenerate}
+                    className="flex-1 bg-white text-black py-3 px-4 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 text-sm shadow-lg hover:shadow-white/20"
+                >
+                    <span>🎵</span> Generate
+                </button>
+                <button
+                    onClick={onToggleConfig}
+                    className="bg-white/5 text-white py-3 px-4 rounded-xl font-semibold hover:bg-white/10 transition-colors border border-white/10 flex items-center justify-center gap-2 text-sm backdrop-blur-md"
+                >
+                    <span>⚙️</span> Advance <span className={`transition-transform duration-300 ${isConfigOpen ? 'rotate-180' : ''}`}>▼</span>
+                </button>
             </div>
         </div>
     );
