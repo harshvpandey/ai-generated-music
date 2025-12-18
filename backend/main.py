@@ -11,6 +11,20 @@ app = FastAPI(title="SongCreater Backend")
 # In-memory storage for job results (in production, use Redis or a database)
 job_storage = {}
 
+
+# Validating API Key loading
+from dotenv import load_dotenv
+load_dotenv()
+
+@app.on_event("startup")
+async def startup_event():
+    api_key = os.getenv("SUNO_API_KEY")
+    if api_key:
+        masked_key = f"{api_key[:5]}...{api_key[-5:]}" if len(api_key) > 10 else "***"
+        print(f"[SUCCESS] Loaded API Key from .env: {masked_key}")
+    else:
+        print("[ERROR] No API Key found in .env!")
+
 # In-memory storage for collected words
 collected_words = []
 

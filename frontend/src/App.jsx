@@ -22,7 +22,10 @@ function App() {
 
   // Audio Playback
   const [currentAudio, setCurrentAudio] = useState(null);
-  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef(new Audio());
 
   // Polling Refs
   const pollingIntervalRef = useRef(null);
@@ -41,6 +44,45 @@ function App() {
   useEffect(() => {
     updatePromptPreview();
   }, [words, personName, occasion]);
+
+  // 3. Audio Event Listeners
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
+    const onEnded = () => setIsPlaying(false);
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+
+    audio.addEventListener('timeupdate', updateTime);
+    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateTime);
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+    };
+  }, []);
+
+  // Format helper
+  const formatTime = (time) => {
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSeek = (e) => {
+    const time = parseFloat(e.target.value);
+    audioRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
 
   // --- Logic Helpers ---
 
@@ -227,29 +269,18 @@ function App() {
             if (validSongs.length > 0) {
               console.log("Valid Songs Found:", validSongs);
               // Normalize Data
-              // const normalizedSongs = validSongs.map(s => ({
-              //   id: s.id || Math.random().toString(36),
-              //   title: s.title || "Generated Song",
-              //   tags: s.tags || "AI Music",
-              //   image_url: s.image_url || s.imageUrl || s.sourceImageUrl,
-              //   // Prioritize finding ANY valid audio URL
-              //   // Simple OR chain since we filtered for validity already
-              //   audio_url: s.sourceAudioUrl || s.audioUrl || s.audio_url || "",
-              //   status: s.status || "complete",
-              //   duration: (s.duration && !isNaN(s.duration)) ? Number(s.duration) : 0
-              // }));
               const normalizedSongs = validSongs.map(s => ({
                 id: s.id || Math.random().toString(36),
                 title: s.title || "Generated Song",
                 tags: s.tags || "AI Music",
-                image_url: s.image_url || s.imageUrl || s.sourceImageUrl,
-
-                // ✅ Allow any non-empty audio URL
-                audio_url: (s.sourceAudioUrl || s.audioUrl || s.audio_url || ""),
-
+                // Prioritize large image, then standard, then camelCase
+                image_url: s.image_large_url || s.image_url || s.imageUrl || s.sourceImageUrl || "",
+                // Prioritize finding ANY valid audio URL
+                audio_url: s.audio_url || s.audioUrl || s.sourceAudioUrl || "",
                 status: s.status || "complete",
-                duration: (s.duration && !isNaN(s.duration)) ? Number(s.duration) : 0
-              })).filter(song => song.audio_url); // 🔥 important
+                duration: s.duration || 0,
+                created_at: s.created_at || new Date().toISOString()
+              })).filter(song => song.audio_url); // Filter out any that still missed audio
 
 
               clearInterval(pollingIntervalRef.current);
@@ -408,89 +439,101 @@ function App() {
   const cloudItems = getWordCloudWords();
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-black text-white font-['Outfit'] selection:bg-indigo-500/30">
+    <div className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1e1b4b] via-black to-black text-white font-['Outfit'] selection:bg-indigo-500/30">
       {/* Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-blob"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
-        <div className="absolute top-[40%] left-[40%] w-[400px] h-[400px] bg-pink-600/10 rounded-full blur-[100px] animate-blob animation-delay-4000"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/40 rounded-full blur-[120px] animate-blob mix-blend-screen"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/40 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-screen"></div>
+        <div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] bg-fuchsia-600/20 rounded-full blur-[150px] animate-blob animation-delay-4000 mix-blend-screen"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-125 contrast-150"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto p-6 md:p-8 lg:p-12">
+      <div className="relative z-10 w-full mx-auto p-4 md:p-6 lg:p-8 min-h-screen flex flex-col">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
-          <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-colors cursor-default">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-xl">
-              ✨
+        <header className="flex flex-col md:flex-row items-center justify-center mb-8 gap-5 flex-shrink-0">
+          <div className="flex items-center gap-5 cursor-default select-none">
+            {/* Icon */}
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center shadow-[0_0_30px_-5px_rgba(124,58,237,0.4)] border border-white/10 group overflow-hidden relative">
+              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <svg className="w-8 h-8 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white leading-none mb-1">JioAIMusic</h1>
-              <p className="text-xs text-indigo-200 font-medium tracking-wide uppercase">Word to Song</p>
+
+            {/* Text */}
+            <div className="flex flex-col">
+              <h1 className="text-5xl font-extrabold tracking-tight text-white mb-1 font-['Outfit']">
+                JioAI Music
+              </h1>
+              <p className="text-xl text-white/50 font-medium tracking-wide">
+                Birthday Celebration
+              </p>
             </div>
           </div>
         </header>
 
         {/* Main Grid */}
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch flex-1">
 
           {/* Left: QR & Stats */}
-          <section className="col-span-1 lg:col-span-3 flex flex-col gap-6">
-            <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-3 border border-indigo-500/20">
-                  <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
-                </div>
-                <h2 className="text-lg font-bold">Scan to Contribute</h2>
-                <p className="text-sm text-white/50">Share one word that describes Anish</p>
+          <section className="col-span-1 lg:col-span-3 flex flex-col h-full">
+            <div className="glass-panel p-8 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md flex flex-col h-full relative overflow-hidden">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">Scan & Submit</h2>
+                <p className="text-lg text-white/60">Describe Anish Bhai in your words</p>
               </div>
 
-              <div className="bg-white p-3 rounded-xl mx-auto max-w-[200px] mb-6 shadow-2xl">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5" alt="QR Code" className="w-full h-auto block rounded-lg" />
+              <div className="flex-1 flex items-center justify-center mb-8 relative">
+                {/* Glowing Border Wrapper */}
+                <div className="relative p-1 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_40px_rgba(79,70,229,0.3)]">
+                  <div className="bg-white p-2 rounded-xl">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5" alt="QR Code" className="w-full h-auto block rounded-lg" />
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+              <div className="mt-auto pt-6 border-t border-white/10 flex items-center justify-between px-2">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-indigo-400">{stats.total}</p>
-                  <p className="text-xs text-white/50 font-medium uppercase tracking-wide">Responses</p>
+                  <p className="text-3xl font-bold text-indigo-400 font-mono">{stats.total}</p>
+                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">RESPONSES</p>
                 </div>
-                <div className="h-8 w-px bg-white/10"></div>
+                <div className="h-10 w-px bg-white/10"></div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-purple-400">{stats.unique}</p>
-                  <p className="text-xs text-white/50 font-medium uppercase tracking-wide">Unique Words</p>
+                  <p className="text-3xl font-bold text-purple-400 font-mono">{stats.unique}</p>
+                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">UNIQUE WORDS</p>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Center: Word Cloud */}
-          <section className="col-span-1 lg:col-span-5 flex flex-col">
-            <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col border border-white/10 bg-black/40 backdrop-blur-md">
-              <div className="text-center mb-4">
-                <h2 className="text-3xl font-bold mb-1 text-white">Anish Bhai's Superpowers</h2>
+          <section className="col-span-1 lg:col-span-5 flex flex-col h-full">
+            <div className="glass-panel rounded-3xl p-8 flex flex-col h-full border border-white/10 bg-black/40 backdrop-blur-md relative overflow-hidden">
+
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold mb-2 text-white">Anish Bhai's Superpowers</h2>
                 <p className="text-lg text-white/60">Words from leaders</p>
               </div>
 
               {/* Cloud */}
-              <div className="flex-1 flex flex-wrap items-center justify-center p-4 content-center gap-3 overflow-hidden relative min-h-[300px]">
+              <div className="flex-1 flex flex-wrap items-center justify-center content-center gap-4 overflow-hidden relative min-h-[300px] py-4">
                 {words.length === 0 ? (
-                  <span className="text-white/50">Waiting for words...</span>
+                  <span className="text-white/30 text-xl font-light italic">Waiting for submissions...</span>
                 ) : (
                   cloudItems.map((item, i) => (
-                    <span key={i} className={`inline-block px-4 py-2 rounded-full backdrop-blur-md transition-all duration-500 hover:scale-110 cursor-default shadow-lg ${item.className}`} style={{ fontSize: item.size }}>
+                    <span key={i} className={`inline-block px-5 py-2.5 rounded-full backdrop-blur-md transition-all duration-500 hover:scale-110 cursor-default shadow-lg border ${item.className}`} style={{ fontSize: item.size }}>
                       {item.text}
                     </span>
                   ))
                 )}
               </div>
 
-              {/* Admin */}
-              <div className="mt-4 pt-4 border-t border-white/10 flex gap-3">
-                <button onClick={handleGenerate} className="flex-1 bg-white text-black py-2 px-4 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 text-sm">
-                  <span>🎵</span> Generate
+              {/* Actions */}
+              <div className="mt-auto pt-8 flex gap-3 w-full">
+                <button onClick={handleGenerate} className="flex-[3] bg-white hover:bg-gray-200 text-black py-3 px-6 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center justify-center gap-2 group">
+                  <span className="group-hover:scale-110 transition-transform text-lg">🎵</span>
+                  Generate
                 </button>
-                <button onClick={() => setShowConfig(!showConfig)} className="bg-white/5 text-white py-2 px-4 rounded-xl font-semibold hover:bg-white/10 transition-colors border border-white/10 flex items-center justify-center gap-2 text-sm">
+                <button onClick={() => setShowConfig(!showConfig)} className="flex-1 bg-white/5 text-white/70 py-3 px-4 rounded-xl font-bold hover:bg-white/10 transition-colors border border-white/10 flex items-center justify-center gap-2 text-sm">
                   <span>⚙️</span> Advance <span className={`transition-transform duration-300 ${showConfig ? 'rotate-180' : ''}`}>▼</span>
                 </button>
               </div>
@@ -503,8 +546,8 @@ function App() {
 
               {/* Header */}
               <div className="text-center mb-4 flex-shrink-0">
-                <h2 className="text-xl font-bold mb-1 text-white">Anish Shah's Song</h2>
-                <p className="text-sm text-white/60">Powered by your words</p>
+                <h2 className="text-2xl font-bold mb-2 text-white">Anish Shah's Song</h2>
+                <p className="text-lg text-white/60">Powered by your words</p>
               </div>
 
               {/* Loading Overlay */}
@@ -529,7 +572,7 @@ function App() {
               )}
 
               {/* Content */}
-              <div className="flex-1 flex flex-col relative overflow-hidden">
+              <div className="flex-1 flex flex-col relative overflow-hidden bg-black/20 rounded-xl p-4">
                 {generatedSongs.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="relative mb-6 group">
@@ -544,47 +587,99 @@ function App() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-                    {generatedSongs.map((song, i) => (
-                      <div key={i} className="glass-panel p-4 rounded-xl flex items-center gap-4 bg-white/5 border border-white/5 transition-all hover:bg-white/10 relative group">
-                        {/* Art */}
-                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex-shrink-0 overflow-hidden relative border border-white/10">
-                          {song.image_url ? <img src={song.image_url} className="w-full h-full object-cover" /> : (
-                            <div className="w-full h-full flex items-center justify-center text-white/20">🎵</div>
-                          )}
-                          {/* Play Button */}
-                          {/* <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                            onClick={() => togglePlay(song.audio_url)}>
-                            {currentAudio === song.audio_url ? (
-                              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                            ) : (
-                              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                            )}
-                          </div> */}
+                  <>
+                    {/* Now Playing Feature */}
+                    {(() => {
+                      const activeSong = generatedSongs.find(s => s.audio_url === currentAudio) || generatedSongs[0];
+                      return (
+                        <div className="flex flex-col items-center text-center mb-6 relative z-10">
+                          {/* Art */}
+                          <div className="w-40 h-40 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 shadow-2xl mb-4 relative group overflow-hidden border border-white/10">
+                            {activeSong.image_url ?
+                              <img src={activeSong.image_url} className="w-full h-full object-cover" />
+                              :
+                              <div className="w-full h-full flex items-center justify-center">
+                                <svg className="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                              </div>
+                            }
+                          </div>
+
+                          {/* Meta */}
+                          <h3 className="text-2xl font-bold text-white mb-1">"{activeSong.title || "Brilliant & Kind"}"</h3>
+                          <p className="text-sm text-white/50 mb-6">A song for Anish Shah</p>
+
+                          {/* Progress Bar (Interactive) */}
+                          {/* Progress Bar (Interactive) */}
+                          <div className="w-full max-w-xs flex items-center gap-3">
+                            {/* Main Play/Pause Button */}
+                            <button
+                              onClick={() => togglePlay(activeSong.audio_url)}
+                              className="w-8 h-8 mb-2 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-lg shadow-indigo-500/30 border border-white/10"
+                            >
+                              {isPlaying && currentAudio === activeSong.audio_url ? (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" /></svg>
+                              ) : (
+                                <svg className="w-4 h-4 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3l14 9-14 9V3z" /></svg>
+                              )}
+                            </button>
+
+                            <div className="flex-1 space-y-2">
+                              <input
+                                type="range"
+                                min="0"
+                                max={duration || 100}
+                                value={currentTime}
+                                onChange={handleSeek}
+                                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                style={{
+                                  background: `linear-gradient(to right, #6366f1 ${(currentTime / duration) * 100}%, rgba(255,255,255,0.1) ${(currentTime / duration) * 100}%)`
+                                }}
+                              />
+                              <div className="flex justify-between text-[10px] text-white/40 font-mono">
+                                <span>{formatTime(currentTime)}</span>
+                                <span>{formatTime(activeSong.duration || duration)}</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-white text-sm truncate">{song.title || "Generated Song"}</h4>
-                          <p className="text-xs text-white/50 truncate">{song.tags || "AI Music"}</p>
-                        </div>
-                        {/* Actions */}
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-white/40 font-mono hidden sm:block">
-                            {(song.duration && !isNaN(song.duration) && song.duration > 0) ?
-                              `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}`
-                              : ''}
-                          </span>
-                          <button onClick={() => togglePlay(song.audio_url)} className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors group-hover:scale-110">
-                            {currentAudio === song.audio_url && audioRef.current && !audioRef.current.paused ? (
-                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                            ) : (
-                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                            )}
-                          </button>
-                        </div>
+                      );
+                    })()}
+
+                    {/* Up Next List */}
+                    <div className="flex flex-col relative mt-2">
+                      <h4 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3 pl-2">UP NEXT</h4>
+                      <div className="h-40 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                        {generatedSongs.map((song, i) => (
+                          <div key={i}
+                            onClick={() => togglePlay(song.audio_url)}
+                            className={`p-3 rounded-xl flex items-center gap-3 transition-all cursor-pointer group ${currentAudio === song.audio_url ? 'bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-500/30' : 'hover:bg-white/5 border border-transparent'}`}>
+
+                            {/* List Art */}
+                            <div className={`w-12 h-12 rounded-lg ${currentAudio === song.audio_url ? 'bg-indigo-500' : 'bg-white/10'} flex items-center justify-center text-white relative overflow-hidden flex-shrink-0`}>
+                              {song.image_url ? <img src={song.image_url} className="w-full h-full object-cover" /> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>}
+                            </div>
+
+                            <div className="flex-1 min-w-0 text-left">
+                              <h5 className={`font-bold text-sm truncate ${currentAudio === song.audio_url ? 'text-white' : 'text-white/80'}`}>{song.title || "Generated Song"}</h5>
+                              <p className="text-xs text-white/40 truncate"></p>
+                            </div>
+
+                            <div className="mr-3">
+                              {currentAudio === song.audio_url && audioRef.current && !audioRef.current.paused ? (
+                                <svg className="w-8 h-8 text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                              ) : (
+                                <svg className="w-8 h-8 text-white/40 hover:text-white transition-colors duration-300" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                              )}
+                            </div>
+
+                            <span className="text-xs text-white/40 font-mono">
+                              {song.duration ? `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}` : '2:38'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
