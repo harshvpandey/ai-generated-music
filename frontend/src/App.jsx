@@ -132,7 +132,7 @@ function App() {
       .sort((a, b) => b[1] - a[1])
       .map(([word]) => word.charAt(0).toUpperCase() + word.slice(1));
 
-    const topWords = sortedUnique.slice(0, 15).join(', ');
+    const topWords = sortedUnique.slice(0, 10).join(', ');
 
     const nameToUse = personName || "Anish Bhai";
     const occasionToUse = occasion || "Birthday";
@@ -402,10 +402,15 @@ function App() {
       if (k) freq[k] = (freq[k] || 0) + 1;
     });
 
-    const uniqueWords = Object.keys(freq);
+    // Sort by frequency descending
+    const uniqueWords = Object.keys(freq).sort((a, b) => freq[b] - freq[a]);
+
+    // Take Top 10
+    const topWords = uniqueWords.slice(0, 10);
+
     let maxFreq = 0;
     let minFreq = Infinity;
-    uniqueWords.forEach(w => {
+    topWords.forEach(w => {
       if (freq[w] > maxFreq) maxFreq = freq[w];
       if (freq[w] < minFreq) minFreq = freq[w];
     });
@@ -421,7 +426,7 @@ function App() {
       "text-3xl font-semibold text-white bg-white/5 border border-white/10"
     ];
 
-    return uniqueWords.map((key, i) => {
+    return topWords.map((key, i) => {
       const count = freq[key];
       const minSize = 1.0;
       const maxSize = 3.5;
@@ -455,8 +460,14 @@ function App() {
       <div className="relative z-10 w-full mx-auto p-4 md:p-6 lg:p-8 min-h-screen flex flex-col">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row items-center justify-center mb-8 gap-5 flex-shrink-0">
-          <div className="flex items-center gap-5 cursor-default select-none">
+        {/* Header - Aligned with Middle Column */}
+        <header className="flex w-full gap-6 mb-8 flex-shrink-0">
+
+          {/* Spacer Left (Matches Grid 3fr) */}
+          <div className="hidden lg:block flex-[3]"></div>
+
+          {/* Title Section (Matches Grid 5.5fr) */}
+          <div className="flex-[5.5] flex flex-col md:flex-row items-center justify-center gap-5 cursor-default select-none">
             {/* Icon */}
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center shadow-[0_0_30px_-5px_rgba(124,58,237,0.4)] border border-white/10 group overflow-hidden relative">
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -469,10 +480,12 @@ function App() {
                 JioAI Music
               </h1>
               <p className="text-xl text-white/50 font-medium tracking-wide">
-
               </p>
             </div>
           </div>
+
+          {/* Spacer Right (Matches Grid 3.5fr) */}
+          <div className="hidden lg:block flex-[3.5]"></div>
         </header>
 
         {/* Main Grid */}

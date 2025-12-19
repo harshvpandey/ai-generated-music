@@ -102,13 +102,26 @@
         }
 
         .card::before {
-            content: '';
+            content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            inset: 0;
+            padding: 2px;
+            border-radius: inherit;
+
+            background: linear-gradient(180deg,
+                    rgba(99, 102, 241, 0.9) 0%,
+                    rgba(168, 85, 247, 0.7) 25%,
+                    rgba(168, 85, 247, 0.4) 55%,
+                    rgba(168, 85, 247, 0.15) 75%,
+                    rgba(168, 85, 247, 0.05) 100%);
+
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+
+            pointer-events: none;
         }
 
         .logo {
@@ -357,7 +370,7 @@
 
                 <h1>Your Word Matters</h1>
                 <p class="subtitle">
-                    Contribute one word that inspires you. Together, we'll create something magical.
+                    Add a word that defines Anish Bhai <br>Together let’s turn gratitude into celebration.
                 </p>
 
                 <!-- Input removed as per request -->
