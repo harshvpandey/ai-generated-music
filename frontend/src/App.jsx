@@ -138,7 +138,7 @@ function App() {
     const occasionToUse = occasion || "Birthday";
 
     // New Bollywood-style prompt + Fixed Title instruction
-    const text = `Create a heartfelt Hindi Bollywood-style celebration-cum-tribute song in a male voice for ${nameToUse}'s ${occasionToUse}, inspired by classic melodies with a happy and pleasant mood, honoring his qualities: ${topWords}. And the title of the song should always be "${nameToUse} ki Shaaan"`;
+    const text = `Create a happy and energetic hindi song in male voice for ${nameToUse}'s ${occasionToUse}. His qualities are: ${topWords}. Title of the song should be "${nameToUse} ki shaaan"`;
     return text;
   };
 
@@ -406,7 +406,7 @@ function App() {
     const uniqueWords = Object.keys(freq).sort((a, b) => freq[b] - freq[a]);
 
     // Take Top 10
-    const topWords = uniqueWords.slice(0, 10);
+    const topWords = uniqueWords.slice(0, 12);
 
     let maxFreq = 0;
     let minFreq = Infinity;
@@ -428,8 +428,8 @@ function App() {
 
     return topWords.map((key, i) => {
       const count = freq[key];
-      const minSize = 1.0;
-      const maxSize = 3.5;
+      const minSize = 2.0;
+      const maxSize = 2.0;
       let size = minSize;
       if (maxFreq > minFreq) {
         size = minSize + ((count - minFreq) / (maxFreq - minFreq)) * (maxSize - minSize);
@@ -495,8 +495,8 @@ function App() {
           <section className="col-span-1 flex flex-col h-full">
             <div className="glass-panel p-8 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md flex flex-col h-full relative overflow-hidden">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Scan & Submit</h2>
-                <p className="text-lg text-white/60">Describe Anish Bhai in your words</p>
+                <h2 className="text-4xl font-bold text-white mb-2">Scan & Submit</h2>
+                <p className="text-lg text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Describe Anish Bhai in your words</p>
               </div>
 
               <div className="flex-1 flex items-center justify-center mb-8 relative">
@@ -510,13 +510,13 @@ function App() {
 
               <div className="mt-auto pt-6 border-t border-white/10 flex items-center justify-between px-2">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-indigo-400 font-mono">{stats.total}</p>
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">RESPONSES</p>
+                  <p className="text-5xl font-bold text-indigo-400 font-mono">{stats.total}</p>
+                  <p className="text-xs text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)] font-bold uppercase tracking-widest mt-1">RESPONSES</p>
                 </div>
                 <div className="h-10 w-px bg-white/10"></div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-purple-400 font-mono">{stats.unique}</p>
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">UNIQUE WORDS</p>
+                  <p className="text-5xl font-bold text-purple-400 font-mono">{stats.unique}</p>
+                  <p className="text-xs text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)] font-bold uppercase tracking-widest mt-1">UNIQUE WORDS</p>
                 </div>
               </div>
             </div>
@@ -527,8 +527,8 @@ function App() {
             <div className="glass-panel rounded-3xl p-8 flex flex-col h-full border border-white/10 bg-black/40 backdrop-blur-md relative overflow-hidden">
 
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold mb-2 text-white">Anish Bhai's Superpowers</h2>
-                <p className="text-lg text-white/60">Words from leaders</p>
+                <h2 className="text-4xl font-bold mb-2 text-white">Anish Bhai's Superpowers</h2>
+                <p className="text-lg text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Words from leaders</p>
               </div>
 
               {/* Cloud */}
@@ -546,7 +546,7 @@ function App() {
 
               {/* Actions */}
               <div className="mt-auto pt-8 flex gap-3 w-full">
-                <button onClick={handleGenerate} className="flex-[3] bg-white hover:bg-gray-200 text-black py-3 px-6 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center justify-center gap-2 group">
+                <button onClick={handleGenerate} className="flex-[3] bg-white hover:bg-gray-200 text-black py-3 px-6 rounded-xl font-bold text-2xl transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center justify-center gap-2 group">
                   <span className="group-hover:scale-110 transition-transform text-lg">🎵</span>
                   Generate
                 </button>
@@ -563,8 +563,8 @@ function App() {
 
               {/* Header */}
               <div className="text-center mb-4 flex-shrink-0">
-                <h2 className="text-2xl font-bold mb-2 text-white">Anish Bhai's Song</h2>
-                <p className="text-lg text-white/60">Powered by your words</p>
+                <h2 className="text-4xl font-bold mb-2 text-white">Anish Bhai's Song</h2>
+                <p className="text-lg text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Powered by your words</p>
               </div>
 
               {/* Loading Overlay */}
