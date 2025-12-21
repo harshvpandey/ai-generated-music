@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { generateSong, pollTaskStatus } from './api';
+import loadingTuneUrl from './assets/Tune.mp3';
 
 //const API_BASE = 'https://my-suno-backend.onrender.com';
 const API_BASE = 'http://localhost:8000';
@@ -21,12 +22,14 @@ function App() {
   const [promptPreview, setPromptPreview] = useState("Waiting for words...");
   const [isManualPrompt, setIsManualPrompt] = useState(false);
 
+
   // Audio Playback
   const [currentAudio, setCurrentAudio] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(new Audio());
+  const loadingAudioRef = useRef(new Audio(loadingTuneUrl));
 
   // Polling Refs
   const pollingIntervalRef = useRef(null);
@@ -69,7 +72,25 @@ function App() {
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
     };
+    return () => {
+      audio.removeEventListener('timeupdate', updateTime);
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+    };
   }, []);
+
+  // Configure Loading Audio
+  useEffect(() => {
+    loadingAudioRef.current.loop = true;
+    loadingAudioRef.current.volume = 0.5; // Optional: set reasonable volume
+  }, []);
+
+  const stopLoadingTune = () => {
+    loadingAudioRef.current.pause();
+    loadingAudioRef.current.currentTime = 0;
+  };
 
   // Format helper
   const formatTime = (time) => {
@@ -168,6 +189,13 @@ function App() {
     setLoadingStatus("Initializing...");
     setError(null);
 
+    // Start Loading Tune
+    try {
+      loadingAudioRef.current.play().catch(e => console.error("Error playing loading tune:", e));
+    } catch (e) {
+      console.error("Audio play error:", e);
+    }
+
     try {
       // Use logic similar to final.html robust handling
       const response = await fetch(`${API_BASE}/api/generate`, {
@@ -209,6 +237,7 @@ function App() {
       console.error(err);
       setError(err.message);
       setLoading(false);
+      stopLoadingTune();
     }
   };
 
@@ -307,6 +336,7 @@ function App() {
                 return [...trulyNew, ...updatedPrev];
               });
               setLoading(false);
+              stopLoadingTune();
 
             } else if (isTaskDone) {
               // Task is marked DONE, but validSongs is empty.
@@ -315,6 +345,7 @@ function App() {
               console.warn("Task Success but No Songs Found:", task);
               clearInterval(pollingIntervalRef.current);
               setLoading(false);
+              stopLoadingTune();
               setError("Generation completed but no audio was returned. Please try again.");
             }
           }
@@ -322,6 +353,7 @@ function App() {
           else if (currentStatus === 'FAILED') {
             clearInterval(pollingIntervalRef.current);
             setLoading(false);
+            stopLoadingTune();
             setError(task.errorMessage || task.error_message || "Generation failed.");
           }
         }
@@ -388,6 +420,26 @@ function App() {
           window.open(url, '_blank');
         }
       }
+    }
+  };
+
+  const handleDownload = async (url, title) => {
+    if (!url) return;
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download failed:", err);
+      // Fallback
+      window.open(url, '_blank');
     }
   };
 
@@ -570,9 +622,15 @@ function App() {
               {/* Loading Overlay */}
               {loading && (
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 rounded-2xl flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="text-white font-bold animate-pulse">Creating Magic...</p>
-                  <p className="text-white/60 text-sm mt-2">{loadingStatus}</p>
+                  <div className="music-loader mb-6">
+                    <div className="music-bar"></div>
+                    <div className="music-bar"></div>
+                    <div className="music-bar"></div>
+                    <div className="music-bar"></div>
+                    <div className="music-bar"></div>
+                  </div>
+                  <p className="text-white font-bold animate-pulse text-lg">Creating Magic...</p>
+                  <p className="text-white/60 text-sm mt-2 font-mono">{loadingStatus}</p>
                 </div>
               )}
 
@@ -631,7 +689,7 @@ function App() {
                             {/* Main Play/Pause Button */}
                             <button
                               onClick={() => togglePlay(activeSong.audio_url)}
-                              className="w-8 h-8 mb-2 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-lg shadow-indigo-500/30 border border-white/10"
+                              className="w-10 h-10 mb-2 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-lg shadow-indigo-500/30 border border-white/10"
                             >
                               {isPlaying && currentAudio === activeSong.audio_url ? (
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" /></svg>
@@ -657,6 +715,8 @@ function App() {
                                 <span>{formatTime(activeSong.duration || duration)}</span>
                               </div>
                             </div>
+
+
                           </div>
                         </div>
                       );
@@ -678,20 +738,35 @@ function App() {
 
                             <div className="flex-1 min-w-0 text-left">
                               <h5 className={`font-bold text-sm truncate ${currentAudio === song.audio_url ? 'text-white' : 'text-white/80'}`}>{song.title || "Generated Song"}</h5>
-                              <p className="text-xs text-white/40 truncate"></p>
+                              <p className="text-xs text-white/40 truncate font-mono">
+                                {song.duration ? `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}` : '2:38'}
+                              </p>
                             </div>
 
-                            <div className="mr-3">
+                            <div className="flex items-center gap-2 mr-2">
                               {currentAudio === song.audio_url && audioRef.current && !audioRef.current.paused ? (
                                 <svg className="w-8 h-8 text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                               ) : (
                                 <svg className="w-8 h-8 text-white/40 hover:text-white transition-colors duration-300" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
                               )}
+
+
+
+                              {/*Download button logic */}
+                              
+                              {/* <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownload(song.audio_url, song.title || "suno-track");
+                                }}
+                                className="p-1.5 rounded-full bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
+                                title="Download"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                              </button> */}
                             </div>
 
-                            <span className="text-xs text-white/40 font-mono">
-                              {song.duration ? `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}` : '2:38'}
-                            </span>
+
                           </div>
                         ))}
                       </div>
