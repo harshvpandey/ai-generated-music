@@ -85,7 +85,7 @@
         }
 
         h1 {
-            font-size: 4rem;
+            font-size: 5rem;
             font-weight: 800;
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             -webkit-background-clip: text;
@@ -353,16 +353,18 @@
     <div class="container">
         <div class="main-grid">
             <!-- Left Side: QR Code -->
-            <div class="card" style="height: fit-content; position: sticky; top: 2rem;">
-                <h2 class="card-title" style="text-align: center; margin-bottom: 1rem;">Join the Session</h2>
+            <div class="card"
+                style="height: fit-content; position: sticky; top: 2rem; display: flex; flex-direction: column; align-items: center;">
+                <h2 class="card-title" style="text-align: center; margin-bottom: 2rem; font-size: 2.5rem;">Join the
+                    Session</h2>
                 <div
-                    style="background: white; padding: 1rem; border-radius: 1rem; margin: 0 auto 1.5rem; width: fit-content;">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5"
-                        alt="Scan to Submit" style="display: block; width: 200px; height: 200px;">
+                    style="background: white; padding: 1rem; border-radius: 1.5rem; margin-bottom: 2rem; width: fit-content; box-shadow: 0 0 30px rgba(99,102,241,0.3);">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5"
+                        alt="Scan to Submit" style="display: block; width: 350px; height: 350px;">
                 </div>
 
                 <a href="word-submit.html" target="_blank" class="btn-secondary"
-                    style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; text-align: center; padding: 1rem; border-radius: 1rem;">
+                    style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; text-align: center; padding: 1.25rem 2rem; border-radius: 1rem; font-size: 1.2rem;">
                     <span>🔗</span> Open Link
                 </a>
             </div>

@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { generateSong, pollTaskStatus } from './api';
 import loadingTuneUrl from './assets/Tune.mp3';
 
-//const API_BASE = 'https://my-suno-backend.onrender.com';
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://my-suno-backend.onrender.com';
+//const API_BASE = 'http://localhost:8000';
 
 function App() {
   // --- State ---
@@ -15,6 +15,7 @@ function App() {
   const [error, setError] = useState(null);
   const [generatedSongs, setGeneratedSongs] = useState([]); // List of songs
   const [showConfig, setShowConfig] = useState(false);
+  const [showQRPopup, setShowQRPopup] = useState(false);
 
   // Config Inputs
   const [personName, setPersonName] = useState("Anish Bhai");
@@ -34,6 +35,7 @@ function App() {
   // Polling Refs
   const pollingIntervalRef = useRef(null);
   const wordsIntervalRef = useRef(null);
+  const isSeekingRef = useRef(false);
 
   // --- Effects ---
 
@@ -53,8 +55,16 @@ function App() {
   useEffect(() => {
     const audio = audioRef.current;
 
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
+    const updateTime = () => {
+      if (!isSeekingRef.current) {
+        setCurrentTime(audio.currentTime);
+      }
+    };
+    const updateDuration = () => {
+      if (!isNaN(audio.duration) && audio.duration !== Infinity) {
+        setDuration(audio.duration);
+      }
+    };
     const onEnded = () => setIsPlaying(false);
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
@@ -65,13 +75,6 @@ function App() {
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
 
-    return () => {
-      audio.removeEventListener('timeupdate', updateTime);
-      audio.removeEventListener('loadedmetadata', updateDuration);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('play', onPlay);
-      audio.removeEventListener('pause', onPause);
-    };
     return () => {
       audio.removeEventListener('timeupdate', updateTime);
       audio.removeEventListener('loadedmetadata', updateDuration);
@@ -100,10 +103,21 @@ function App() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const handleSeekStart = () => {
+    isSeekingRef.current = true;
+  };
+
   const handleSeek = (e) => {
     const time = parseFloat(e.target.value);
-    audioRef.current.currentTime = time;
     setCurrentTime(time);
+  };
+
+  const handleSeekEnd = (e) => {
+    const time = parseFloat(e.target.value);
+    if (!isNaN(time) && isFinite(time)) {
+      audioRef.current.currentTime = time;
+    }
+    isSeekingRef.current = false;
   };
 
   // --- Logic Helpers ---
@@ -306,8 +320,8 @@ function App() {
                 id: s.id || Math.random().toString(36),
                 title: s.title || "Generated Song",
                 tags: s.tags || "AI Music",
-                // Prioritize large image, then standard, then camelCase
-                image_url: s.image_large_url || s.image_url || s.imageUrl || s.sourceImageUrl || "",
+                // Prioritize standard image first, then large
+                image_url: s.image_url || s.image_large_url || s.imageUrl || s.sourceImageUrl || "",
                 // Prioritize finding ANY valid audio URL
                 audio_url: s.audio_url || s.audioUrl || s.sourceAudioUrl || "",
                 status: s.status || "complete",
@@ -395,23 +409,31 @@ function App() {
       if (audio.paused) {
         console.log("Resuming audio...");
         try {
+          setIsPlaying(true); // Optimistic UI update
           await audio.play();
-        } catch (e) { console.error("Resume error:", e); }
+        } catch (e) {
+          console.error("Resume error:", e);
+          setIsPlaying(false);
+        }
       } else {
         console.log("Pausing audio...");
         audio.pause();
-        // Don't set currentAudio to null if just pausing, technically, 
-        // but for this UI, we treat 'pause' as stopping active playback visual
-        //setCurrentAudio(null);
+        setIsPlaying(false); // Optimistic UI update
       }
     } else {
       // New Song
       console.log("Playing new song:", url);
+
+      // Update state immediately so UI shows "Pause" button while loading
+      setCurrentAudio(url);
+      setIsPlaying(true); // Optimistic UI update
+      setCurrentTime(0);
+      setDuration(0);
+
       audio.src = url;
       audio.load();
       try {
         await audio.play();
-        setCurrentAudio(url);
       } catch (e) {
         console.error("Playback failed for:", url, e);
         // Show the actual error to the user
@@ -509,29 +531,29 @@ function App() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-125 contrast-150"></div>
       </div>
 
-      <div className="relative z-10 w-full mx-auto p-4 md:p-6 lg:p-8 min-h-screen flex flex-col">
+      <div className="relative z-10 w-full mx-auto p-4 md:p-6 lg:p-10 min-h-screen flex flex-col">
 
         {/* Header */}
         {/* Header - Aligned with Middle Column */}
-        <header className="flex w-full gap-6 mb-8 flex-shrink-0">
+        <header className="flex w-full gap-6 mb-10 flex-shrink-0">
 
           {/* Spacer Left (Matches Grid 3fr) */}
           <div className="hidden lg:block flex-[3]"></div>
 
           {/* Title Section (Matches Grid 5.5fr) */}
-          <div className="flex-[5.5] flex flex-col md:flex-row items-center justify-center gap-5 cursor-default select-none">
+          <div className="flex-[5.5] flex flex-col md:flex-row items-center justify-center gap-6 cursor-default select-none">
             {/* Icon */}
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center shadow-[0_0_30px_-5px_rgba(124,58,237,0.4)] border border-white/10 group overflow-hidden relative">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#a855f7] flex items-center justify-center shadow-[0_0_40px_-5px_rgba(124,58,237,0.5)] border border-white/10 group overflow-hidden relative">
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <svg className="w-8 h-8 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+              <svg className="w-10 h-10 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
             </div>
 
             {/* Text */}
             <div className="flex flex-col">
-              <h1 className="text-5xl font-extrabold tracking-tight text-white mb-1 font-['Outfit']">
+              <h1 className="text-7xl font-extrabold tracking-tight text-white mb-2 font-['Outfit'] drop-shadow-2xl">
                 JioAI Music
               </h1>
-              <p className="text-xl text-white/50 font-medium tracking-wide">
+              <p className="text-2xl text-white/50 font-medium tracking-wide">
               </p>
             </div>
           </div>
@@ -541,34 +563,37 @@ function App() {
         </header>
 
         {/* Main Grid */}
-        <main className="grid grid-cols-1 lg:grid-cols-[3fr_5.5fr_3.5fr] gap-6 items-stretch flex-1">
+        <main className="grid grid-cols-1 lg:grid-cols-[3fr_5.5fr_3.5fr] gap-8 items-stretch flex-1">
 
           {/* Left: QR & Stats */}
           <section className="col-span-1 flex flex-col h-full">
-            <div className="glass-panel p-8 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md flex flex-col h-full relative overflow-hidden">
-              <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold text-white mb-2">Scan & Submit</h2>
-                <p className="text-lg text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Describe Anish Bhai in your words</p>
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/10 bg-black/40 backdrop-blur-md flex flex-col h-full relative overflow-hidden">
+              <div className="text-center mb-6">
+                <h2 className="text-6xl font-bold text-white mb-4 whitespace-nowrap tracking-tighter">Scan & Submit</h2>
+                <p className="text-3xl text-white/80 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Describe Anish Bhai <br></br>in your words</p>
               </div>
 
-              <div className="flex-1 flex items-center justify-center mb-8 relative">
+              <div className="flex-1 flex items-center justify-center mb-6 relative">
                 {/* Glowing Border Wrapper */}
-                <div className="relative p-1 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_40px_rgba(79,70,229,0.3)]">
-                  <div className="bg-white p-2 rounded-xl">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5" alt="QR Code" className="w-full h-auto block rounded-lg" />
+                <div
+                  className="relative p-1.5 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_50px_rgba(79,70,229,0.4)] w-full max-w-[350px] cursor-pointer hover:scale-105 transition-transform duration-300"
+                  onClick={() => setShowQRPopup(true)}
+                >
+                  <div className="bg-white p-3 rounded-2xl">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5" alt="QR Code" className="w-full h-auto block rounded-xl" />
                   </div>
                 </div>
               </div>
 
-              <div className="mt-auto pt-6 border-t border-white/10 flex items-center justify-between px-2">
+              <div className="mt-auto pt-8 border-t border-white/10 flex items-center justify-center gap-10">
                 <div className="text-center">
-                  <p className="text-5xl font-bold text-indigo-400 font-mono">{stats.total}</p>
-                  <p className="text-xs text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)] font-bold uppercase tracking-widest mt-1">RESPONSES</p>
+                  <p className="text-7xl font-bold text-indigo-400 font-mono tracking-tighter">{stats.total}</p>
+                  <p className="text-2xl text-white/90 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)] font-bold uppercase tracking-widest mt-2 whitespace-nowrap">RESPONSES</p>
                 </div>
-                <div className="h-10 w-px bg-white/10"></div>
+                <div className="h-40 w-px bg-white/10"></div>
                 <div className="text-center">
-                  <p className="text-5xl font-bold text-purple-400 font-mono">{stats.unique}</p>
-                  <p className="text-xs text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)] font-bold uppercase tracking-widest mt-1">UNIQUE WORDS</p>
+                  <p className="text-7xl font-bold text-purple-400 font-mono tracking-tighter">{stats.unique}</p>
+                  <p className="text-2xl text-white/90 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)] font-bold uppercase tracking-widest mt-2 whitespace-nowrap">UNIQUE WORDS</p>
                 </div>
               </div>
             </div>
@@ -576,20 +601,20 @@ function App() {
 
           {/* Center: Word Cloud */}
           <section className="col-span-1 flex flex-col h-full">
-            <div className="glass-panel rounded-3xl p-8 flex flex-col h-full border border-white/10 bg-black/40 backdrop-blur-md relative overflow-hidden">
+            <div className="glass-panel rounded-[2rem] p-8 flex flex-col h-full border border-white/10 bg-black/40 backdrop-blur-md relative overflow-hidden">
 
-              <div className="text-center mb-6">
-                <h2 className="text-4xl font-bold mb-2 text-white">Anish Bhai's Superpowers</h2>
-                <p className="text-lg text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Words from leaders</p>
+              <div className="text-center mb-8">
+                <h2 className="text-6xl font-bold mb-4 text-white whitespace-nowrap tracking-tighter">Anish Bhai's Superpowers</h2>
+                <p className="text-3xl text-white/80 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Words from leaders</p>
               </div>
 
               {/* Cloud */}
-              <div className="flex-1 flex flex-wrap items-center justify-center content-center gap-4 overflow-hidden relative min-h-[300px] py-4">
+              <div className="flex-1 flex flex-wrap items-center justify-center content-center gap-6 overflow-hidden relative min-h-[300px] py-6">
                 {words.length === 0 ? (
-                  <span className="text-white/30 text-xl font-light italic">Waiting for submissions...</span>
+                  <span className="text-white/30 text-2xl font-light italic">Waiting for submissions...</span>
                 ) : (
                   cloudItems.map((item, i) => (
-                    <span key={i} className={`inline-block px-5 py-2.5 rounded-full backdrop-blur-md transition-all duration-500 hover:scale-110 cursor-default shadow-lg border ${item.className}`} style={{ fontSize: item.size }}>
+                    <span key={i} className={`inline-block px-6 py-3 rounded-full backdrop-blur-md transition-all duration-500 hover:scale-110 cursor-default shadow-xl border ${item.className}`} style={{ fontSize: item.size }}>
                       {item.text}
                     </span>
                   ))
@@ -598,11 +623,11 @@ function App() {
 
               {/* Actions */}
               <div className="mt-auto pt-8 flex gap-3 w-full">
-                <button onClick={handleGenerate} className="flex-[3] bg-white hover:bg-gray-200 text-black py-3 px-6 rounded-xl font-bold text-2xl transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center justify-center gap-2 group">
-                  <span className="group-hover:scale-110 transition-transform text-lg">🎵</span>
+                <button onClick={handleGenerate} className="flex-[3] bg-white hover:bg-gray-200 text-black py-4 px-8 rounded-2xl font-bold text-3xl transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center justify-center gap-3 group">
+                  <span className="group-hover:scale-110 transition-transform text-3xl">🎵</span>
                   Generate
                 </button>
-                <button onClick={() => setShowConfig(!showConfig)} className="flex-1 bg-white/5 text-white/70 py-3 px-4 rounded-xl font-bold hover:bg-white/10 transition-colors border border-white/10 flex items-center justify-center gap-2 text-sm">
+                <button onClick={() => setShowConfig(!showConfig)} className="flex-1 bg-white/5 text-white/70 py-3 px-4 rounded-xl font-bold hover:bg-white/10 transition-colors border border-white/10 flex items-center justify-center gap-2 text-xl">
                   <span>⚙️</span> Advance <span className={`transition-transform duration-300 ${showConfig ? 'rotate-180' : ''}`}>▼</span>
                 </button>
               </div>
@@ -611,28 +636,15 @@ function App() {
 
           {/* Right: Song Generator */}
           <section className="col-span-1 flex flex-col">
-            <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col relative border border-white/10 bg-black/40 backdrop-blur-md">
+            <div className="glass-panel rounded-[2rem] p-6 flex-1 flex flex-col relative border border-white/10 bg-black/40 backdrop-blur-md">
 
               {/* Header */}
-              <div className="text-center mb-4 flex-shrink-0">
-                <h2 className="text-4xl font-bold mb-2 text-white">Anish Bhai's Song</h2>
-                <p className="text-lg text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Powered by your words</p>
+              <div className="text-center mb-6 flex-shrink-0">
+                <h2 className="text-6xl font-bold mb-4 text-white whitespace-nowrap tracking-tighter">Anish Bhai's Song</h2>
+                <p className="text-3xl text-white/80 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">Powered by your words</p>
               </div>
 
-              {/* Loading Overlay */}
-              {loading && (
-                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 rounded-2xl flex flex-col items-center justify-center">
-                  <div className="music-loader mb-6">
-                    <div className="music-bar"></div>
-                    <div className="music-bar"></div>
-                    <div className="music-bar"></div>
-                    <div className="music-bar"></div>
-                    <div className="music-bar"></div>
-                  </div>
-                  <p className="text-white font-bold animate-pulse text-lg">Creating Magic...</p>
-                  <p className="text-white/60 text-sm mt-2 font-mono">{loadingStatus}</p>
-                </div>
-              )}
+
 
               {/* Error Overlay */}
               {error && (
@@ -640,9 +652,9 @@ function App() {
                   <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4 border border-red-500/20">
                     <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Oops!</h3>
-                  <p className="text-white/70 mb-6">{error}</p>
-                  <button onClick={() => setError(null)} className="px-6 py-2 bg-white text-black rounded-lg font-bold hover:bg-gray-200 transition-colors">Try Again</button>
+                  <h3 className="text-3xl font-bold text-white mb-2">Oops!</h3>
+                  <p className="text-xl text-white/70 mb-6">{error}</p>
+                  <button onClick={() => setError(null)} className="px-6 py-2 bg-white text-black rounded-lg font-bold text-xl hover:bg-gray-200 transition-colors">Try Again</button>
                 </div>
               )}
 
@@ -651,14 +663,14 @@ function App() {
                 {generatedSongs.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="relative mb-6 group">
-                      <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden shadow-2xl relative">
+                      <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden shadow-2xl relative mx-auto">
                         <div className="absolute inset-0 bg-black/10"></div>
                         <div className="w-full h-full flex items-center justify-center relative z-10">
                           <svg className="w-20 h-20 text-white/90 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2 mt-4 text-center">Your Song Awaits</h3>
-                      <p className="text-white/50 text-sm max-w-[200px] text-center mx-auto">Click Generate to create a masterpiece.</p>
+                      <h3 className="text-4xl font-bold text-white mb-2 mt-4 text-center">Your Song Awaits</h3>
+                      <p className="text-white/50 text-xl max-w-[300px] text-center mx-auto">Click Generate to create a masterpiece.</p>
                     </div>
                   </div>
                 ) : (
@@ -671,7 +683,7 @@ function App() {
                           {/* Art */}
                           <div className="w-40 h-40 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 shadow-2xl mb-4 relative group overflow-hidden border border-white/10">
                             {activeSong.image_url ?
-                              <img src={activeSong.image_url} className="w-full h-full object-cover" />
+                              <img src={activeSong.image_url} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => e.target.style.display = 'none'} />
                               :
                               <div className="w-full h-full flex items-center justify-center">
                                 <svg className="w-16 h-16 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
@@ -681,41 +693,57 @@ function App() {
 
                           {/* Meta */}
                           <h3 className="text-2xl font-bold text-white mb-1">"{activeSong.title || "Brilliant & Kind"}"</h3>
-                          <p className="text-sm text-white/50 mb-6">A song for Anish Shah</p>
+                          <p className="text-sm text-white/50 mb-6">A song for Anish Bhai</p>
 
                           {/* Progress Bar (Interactive) */}
                           {/* Progress Bar (Interactive) */}
-                          <div className="w-full max-w-xs flex items-center gap-3">
-                            {/* Main Play/Pause Button */}
-                            <button
-                              onClick={() => togglePlay(activeSong.audio_url)}
-                              className="w-10 h-10 mb-2 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-lg shadow-indigo-500/30 border border-white/10"
-                            >
-                              {isPlaying && currentAudio === activeSong.audio_url ? (
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" /></svg>
-                              ) : (
-                                <svg className="w-4 h-4 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3l14 9-14 9V3z" /></svg>
-                              )}
-                            </button>
+                          <div className="w-full max-w-xs flex flex-col gap-4">
 
-                            <div className="flex-1 space-y-2">
-                              <input
-                                type="range"
-                                min="0"
-                                max={duration || 100}
-                                value={currentTime}
-                                onChange={handleSeek}
-                                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                style={{
-                                  background: `linear-gradient(to right, #6366f1 ${(currentTime / duration) * 100}%, rgba(255,255,255,0.1) ${(currentTime / duration) * 100}%)`
-                                }}
-                              />
-                              <div className="flex justify-between text-[10px] text-white/40 font-mono">
-                                <span>{formatTime(currentTime)}</span>
-                                <span>{formatTime(activeSong.duration || duration)}</span>
+                            {/* Progress Bar (Interactive) */}
+                            <div className="w-full max-w-xs flex items-center gap-3">
+                              {/* Main Play/Pause Button */}
+                              <button
+                                onClick={() => togglePlay(activeSong.audio_url)}
+                                className="w-10 h-10 mb-2 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-lg shadow-indigo-500/30 border border-white/10"
+                              >
+                                {isPlaying && currentAudio === activeSong.audio_url ? (
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" /></svg>
+                                ) : (
+                                  <svg className="w-4 h-4 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3l14 9-14 9V3z" /></svg>
+                                )}
+                              </button>
+
+                              <div className="flex-1 space-y-2">
+                                {(() => {
+                                  const maxDuration = (duration && !isNaN(duration) && duration !== Infinity)
+                                    ? duration
+                                    : (activeSong.duration || 100);
+                                  const percent = Math.min((currentTime / maxDuration) * 100, 100);
+                                  return (
+                                    <input
+                                      type="range"
+                                      min="0"
+                                      max={maxDuration}
+                                      step="0.1"
+                                      value={currentTime}
+                                      onMouseDown={handleSeekStart}
+                                      onTouchStart={handleSeekStart}
+                                      onChange={handleSeek}
+                                      onMouseUp={handleSeekEnd}
+                                      onTouchEnd={handleSeekEnd}
+                                      className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white/10"
+                                      style={{
+                                        backgroundImage: `linear-gradient(to right, #6366f1 ${percent}%, rgba(255,255,255,0.1) ${percent}%)`
+                                      }}
+                                    />
+                                  );
+                                })()}
+                                <div className="flex justify-between text-[10px] text-white/40 font-mono">
+                                  <span>{formatTime(currentTime)}</span>
+                                  <span>{formatTime(activeSong.duration || duration)}</span>
+                                </div>
                               </div>
                             </div>
-
 
                           </div>
                         </div>
@@ -733,7 +761,15 @@ function App() {
 
                             {/* List Art */}
                             <div className={`w-12 h-12 rounded-lg ${currentAudio === song.audio_url ? 'bg-indigo-500' : 'bg-white/10'} flex items-center justify-center text-white relative overflow-hidden flex-shrink-0`}>
-                              {song.image_url ? <img src={song.image_url} className="w-full h-full object-cover" /> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>}
+                              <svg className="w-5 h-5 absolute" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                              {song.image_url && (
+                                <img
+                                  src={song.image_url}
+                                  className="w-full h-full object-cover relative z-10"
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => e.target.style.display = 'none'}
+                                />
+                              )}
                             </div>
 
                             <div className="flex-1 min-w-0 text-left">
@@ -753,7 +789,7 @@ function App() {
 
 
                               {/*Download button logic */}
-                              
+
                               {/* <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -824,6 +860,43 @@ function App() {
                 />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Enlarged QR Popup */}
+        {showQRPopup && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="relative p-2 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_100px_rgba(79,70,229,0.6)]">
+              {/* Close Button - Outside Top Right */}
+              <button
+                onClick={() => setShowQRPopup(false)}
+                className="absolute top-0 -right-14 z-50 p-2 bg-white/20 hover:bg-white/40 rounded-full text-white transition-all backdrop-blur-md border border-white/20 flex items-center justify-center"
+                title="Close"
+              >
+                <svg className="w-8 h-8 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+
+              <div className="bg-white p-6 rounded-[1.2rem] relative">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=https://jioaimusic.netlify.app/word-submit.html&color=4f46e5" alt="QR Code Enlarged" className="w-[80vh] h-[80vh] max-w-[600px] max-h-[600px] object-contain block rounded-xl" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Full Screen Loading Overlay */}
+        {loading && (
+          <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+            <div className="scale-150 transform mb-8">
+              <div className="music-loader">
+                <div className="music-bar"></div>
+                <div className="music-bar"></div>
+                <div className="music-bar"></div>
+                <div className="music-bar"></div>
+                <div className="music-bar"></div>
+              </div>
+            </div>
+            <h2 className="text-5xl font-bold text-white mb-4 animate-pulse tracking-tight text-center">AI is Creating Magic...</h2>
+            <p className="text-xl text-white/50 font-mono tracking-wide">{loadingStatus}</p>
           </div>
         )}
 
