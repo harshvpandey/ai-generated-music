@@ -886,7 +886,7 @@ function App() {
         {/* Full Screen Loading Overlay */}
         {loading && (
           <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
-            <div className="scale-150 transform mb-8">
+            <div className="scale-[2.5] transform mb-12">
               <div className="music-loader">
                 <div className="music-bar"></div>
                 <div className="music-bar"></div>
@@ -895,8 +895,8 @@ function App() {
                 <div className="music-bar"></div>
               </div>
             </div>
-            <h2 className="text-5xl font-bold text-white mb-4 animate-pulse tracking-tight text-center">AI is Creating Magic...</h2>
-            <p className="text-xl text-white/50 font-mono tracking-wide">{loadingStatus}</p>
+            <h2 className="text-5xl font-bold text-white mb-4 animate-pulse tracking-tight text-center">AI  is  Creating  Magic...</h2>
+            {/* <p className="text-xl text-white/50 font-mono tracking-wide">{loadingStatus}</p> */}
           </div>
         )}
 
