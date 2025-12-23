@@ -219,7 +219,7 @@
         // Real-time word count update (connect to your backend)
         function updateWordCount() {
             // Fetch from your backend API
-            fetch('https://my-suno-backend.onrender.com/api/word-count')
+            fetch('http://localhost:8000/api/word-count')
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('wordCount').textContent = data.count;

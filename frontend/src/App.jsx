@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { generateSong, pollTaskStatus } from './api';
 import loadingTuneUrl from './assets/Tune.mp3';
 
-const API_BASE = 'https://my-suno-backend.onrender.com';
-//const API_BASE = 'http://localhost:8000';
+//const API_BASE = 'https://my-suno-backend.onrender.com';
+const API_BASE = 'http://localhost:8000';
 
 function App() {
   // --- State ---
@@ -173,7 +173,7 @@ function App() {
     const occasionToUse = occasion || "Birthday";
 
     // New Bollywood-style prompt + Fixed Title instruction
-    const text = `Create a happy and energetic hindi song in male voice for ${nameToUse}'s ${occasionToUse}. His qualities are: ${topWords}. Title of the song should be "${nameToUse} ki shaaan"`;
+    const text = `Create a happy and energetic hindi song in male voice for Jio's technology leader ${nameToUse}'s ${occasionToUse}. His qualities are: ${topWords}. Title of the song should be "${nameToUse} ki shaaan"`;
     return text;
   };
 
